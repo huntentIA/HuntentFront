@@ -165,7 +165,7 @@ function App() {
                 path="/knowledgeBaseView"
                 element={
                   <PrivateRoute isAuthenticated={isAuthenticated}>
-                    <KnowledgeBaseView />
+                  <KnowledgeBaseView />
                   </PrivateRoute>
                 } 
               />

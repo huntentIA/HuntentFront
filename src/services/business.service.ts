@@ -1,5 +1,5 @@
 import httpClient from './api/httpClient'
-import { BusinessesAccountResponse } from './interfaces/business-service'
+import { BusinessesAccountResponse, BusinessUpdateData, BusinessUpdateResponse } from './interfaces/business-service'
 
 const BussinessService = {
   getBusinessIdByUserId: async (
@@ -17,10 +17,25 @@ const BussinessService = {
       if (!data) {
         return null
       }
+      console.log(data)
       return data ? data : null
     } catch (error) {
       console.error('Error al obtener el negocio:', error)
       throw error
+    }
+  },
+  updateBusiness: async (
+    businessData: BusinessUpdateData
+  ): Promise<BusinessUpdateResponse> => {
+    try {
+      const { data } = await httpClient.put<BusinessUpdateResponse>(
+        `/api/businesses/${businessData.id}`,
+        businessData
+      );
+      return data;
+    } catch (error) {
+      console.error('Error al actualizar el negocio:', error);
+      throw error;
     }
   },
 }

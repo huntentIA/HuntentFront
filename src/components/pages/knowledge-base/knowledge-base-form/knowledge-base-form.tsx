@@ -78,8 +78,8 @@ const KnowledgeBaseForm: React.FC = () => {
   const toggleObjetivo = (id: number): void => {
     setFormData(prev => {
       const objetivosActuales = prev.objective.includes(id)
-        ? prev.objective.filter(obj => obj !== id)
-        : [...prev.objective, id];
+        ? prev.objective.filter(obj => obj !== id) 
+        : [...prev.objective, id];                 
       return { ...prev, objective: objetivosActuales };
     });
     setError('');
