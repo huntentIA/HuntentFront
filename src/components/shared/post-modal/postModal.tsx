@@ -6,6 +6,7 @@ import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
 import { Post } from '../../pages/content-planner/interfaces/content-planner'
+import postService from '../../../services/post.service'
 
 // Definición de tipos
 export type PostStatus = 'APPROVED' | 'REJECTED' | 'PENDING'
@@ -54,36 +55,30 @@ const PostModal: React.FC<PostModalProps> = ({ post, closeModal, isOpen }) => {
     }
   }
 
-  const handleApproval = async (status: PostStatus): Promise<void> => {
-    if (!post) return
+  // In PostModal.tsx
+const handleApproval = async (post: Post, status: PostStatus): Promise<void> => {
+  if (!post) return
 
-    try {
-      // Aquí va tu lógica de actualización
-      const response = await fetch(`/api/posts/${post.id}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status }),
-      })
-
-      if (response.ok) {
-        toast.success(
-          `El post ha sido ${status === 'APPROVED' ? 'aprobado' : 'rechazado'}.`
-        )
-        closeModal()
-      } else {
-        toast.error(
-          `Error al ${status === 'APPROVED' ? 'aprobar' : 'rechazar'} el post.`
-        )
-      }
-    } catch (error) {
-      console.error('Error en handleApproval:', error)
+  try {
+    const success = await postService.updatePostStatus(post.id, status);
+    
+    if (success) {
+      toast.success(
+        `El post ha sido ${status === 'APPROVED' ? 'aprobado' : 'rechazado'}.`
+      )
+      closeModal()
+    } else {
       toast.error(
         `Error al ${status === 'APPROVED' ? 'aprobar' : 'rechazar'} el post.`
       )
     }
+  } catch (error) {
+    console.error('Error en handleApproval:', error)
+    toast.error(
+      `Error al ${status === 'APPROVED' ? 'aprobar' : 'rechazar'} el post.`
+    )
   }
+}
 
   const handleTranscribe = async (): Promise<void> => {
     if (!post || !post.mediaURL || typeof post.mediaURL !== 'string') return
@@ -373,14 +368,14 @@ const PostModal: React.FC<PostModalProps> = ({ post, closeModal, isOpen }) => {
             {/* Botones de aprobación */}
             <div className="flex gap-4">
               <button
-                onClick={() => handleApproval('REJECTED')}
+                onClick={() => handleApproval(post,'REJECTED')}
                 className="rounded-lg bg-pink-500 px-6 py-2 text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={status === 'REJECTED'}
               >
                 RECHAZAR
               </button>
               <button
-                onClick={() => handleApproval('APPROVED')}
+                onClick={() => handleApproval(post, 'APPROVED')}
                 className="rounded-lg bg-green-500 px-6 py-2 text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={status === 'APPROVED'}
               >

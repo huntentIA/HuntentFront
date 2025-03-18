@@ -233,33 +233,31 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
-  const handleApproval = async (
-    post: Post,
-    status: 'approved' | 'rejected'
-  ) => {
+  const handleApproval = async (postId: string, status: string) => {
+    setLoading(true);
     try {
-      const newStatus: ApprovalStatus =
-        status === 'approved' ? 'APPROVED' : 'REJECTED'
-
-      await postService.updatePostStatus(post.id, newStatus)
-
-      // Update local state
-      setPosts((prevPosts) =>
-        prevPosts.map((p) =>
-          p.id === post.id ? { ...p, status: newStatus } : p
-        )
-      )
-
-      toast.success(
-        `El post ha sido ${status === 'approved' ? 'aprobado' : 'rechazado'}.`
-      )
+      const newStatus = status === 'approved' ? 'APPROVED' : 'REJECTED';
+      
+      const success = await postService.updatePostStatus(postId, newStatus);
+      
+      if (success) {
+        toast.success(
+          `El post ha sido ${status === 'approved' ? 'aprobado' : 'rechazado'}.`
+        );
+      } else {
+        toast.error(
+          `No se pudo ${status === 'approved' ? 'aprobar' : 'rechazar'} el post.`
+        );
+      }
     } catch (error) {
-      console.error('Error in handleApproval:', error)
+      console.error(`Error al ${status === 'approved' ? 'aprobar' : 'rechazar'} el post:`, error);
       toast.error(
         `Error al ${status === 'approved' ? 'aprobar' : 'rechazar'} el post.`
-      )
+      );
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   // Modal handling functions
   const openPostModal = (post: Post) => {
@@ -607,7 +605,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                       </button>
                       {post.status !== 'APPROVED' && (
                         <button
-                          onClick={() => handleApproval(post, 'approved')}
+                          onClick={() => handleApproval(post.id, 'approved')}
                           className={`rounded-md p-2 ${
                             isDarkMode
                               ? 'bg-green-600 hover:bg-green-700'
@@ -619,7 +617,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                       )}
                       {post.status !== 'REJECTED' && (
                         <button
-                          onClick={() => handleApproval(post, 'rejected')}
+                          onClick={() => handleApproval(post.id, 'rejected')}
                           className={`rounded-md p-2 ${
                             isDarkMode
                               ? 'bg-red-600 hover:bg-red-700'

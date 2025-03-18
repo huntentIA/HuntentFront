@@ -1,30 +1,37 @@
-// src/services/transcribe.ts
-
 import httpClient from './api/httpClient'
 
-interface TranscribeService {
-  transcribe: (postId: string, mediaUrl: string) => Promise<unknown>
+// Interfaces recomendadas (deberías crear estas interfaces)
+interface TranscribeRequest {
+  id: string;
+  url: string;
 }
 
-const transcribeService: TranscribeService = {
-  transcribe: async (postId: string, mediaUrl: string): Promise<unknown> => {
+interface TranscribeResponse {
+  // Ajusta según la respuesta real de tu API
+  id?: string;
+  status?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  result?: any;
+  // otros campos que devuelva tu API
+}
+
+const TranscribeService = {
+  transcribe: async (
+    id: string, 
+    url: string
+  ): Promise<TranscribeResponse> => {
     try {
-      const response = await httpClient.post('/api/transcribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          postId,
-          mediaUrl,
-        }),
-      })
-      return response.data
+      const body: TranscribeRequest = { id, url };
+      const { data } = await httpClient.post<TranscribeResponse>(
+        `/transcribe/process`,
+        body
+      );
+      return data;
     } catch (error) {
-      console.error('Error al transcribir la publicación:', error)
-      throw error
+      console.error('Error en la transcripción:', error);
+      throw error;
     }
-  },
+  }
 }
 
-export default transcribeService
+export default TranscribeService;
