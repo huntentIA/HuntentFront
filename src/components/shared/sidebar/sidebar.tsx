@@ -1,9 +1,9 @@
-import { NavLink, useNavigate } from 'react-router-dom'
-import BussinessService from '../../../services/business.service'
+import { NavLink} from 'react-router-dom'
+/* import BussinessService from '../../../services/business.service'
 import { BusinessesAccountResponse } from '../../../services/interfaces/business-service'
-import businessAccountService from '../../../services/business-account.service'
-import { Brain, HardDrive, Users } from 'lucide-react'
 import { getBusinessAccountsByIdResponse } from '../../../services/interfaces/business-account-service'
+import businessAccountService from '../../../services/business-account.service' */
+import { Brain, HardDrive, Users } from 'lucide-react'
 import logo from '../../../assets/huntent-logo.webp'
 const Sidebar: React.FC<SidebarProps> = ({ isDarkMode, isOpen }) => {
   return (
@@ -79,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isDarkMode, isOpen }) => {
 /**
  * Sidebar item that fetches data before navigation
  */
-const SidebarItemWithFetch: React.FC<SidebarItemWithFetchProps> = ({
+/* const SidebarItemWithFetch: React.FC<SidebarItemWithFetchProps> = ({
   icon,
   label,
   isDarkMode,
@@ -156,7 +156,7 @@ const SidebarItemWithFetch: React.FC<SidebarItemWithFetchProps> = ({
       </button>
     </li>
   )
-}
+} */
 
 /**
  * Standard sidebar navigation item
