@@ -213,6 +213,7 @@ const ReferentSearch: React.FC<ReferentSearchProps> = ({ isDarkMode }) => {
           total_account_interactions_last_25_publications:
             competitor.total_account_interactions_last_25_publications || 0,
           average_engagement: competitor.average_engagement || 0,
+          publication_basic_data: competitor.publication_basic_data,
         }
 
         let accountId = ''

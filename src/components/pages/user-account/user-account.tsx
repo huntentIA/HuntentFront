@@ -113,6 +113,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
               total_account_interactions_last_25_publications:
                 competitor.total_account_interactions_last_25_publications || 0,
               average_engagement: competitor.average_engagement || 0,
+              publication_basic_data: competitor.publication_basic_data,
             }
 
             await updateAccount(accountData, existingAccount.id || '')
@@ -305,7 +306,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                     <div className="flex-1">
                       <div className="mb-2 flex flex-wrap items-center gap-2">
                         <h3 className="text-lg font-semibold">
-                          {account.short_description || account.accountName}
+                          {account.accountName || account.accountName}
                         </h3>
   
                         <div className="flex flex-wrap gap-2">

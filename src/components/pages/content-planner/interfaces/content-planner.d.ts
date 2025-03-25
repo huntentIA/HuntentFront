@@ -57,6 +57,7 @@ export interface PostQueryParams {
   last_item_id?: string
   last_publication_date?: string
   min_date?: string
+  max_date?: string
   publication_date_end?: string
 }
 

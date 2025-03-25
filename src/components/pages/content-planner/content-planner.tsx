@@ -40,7 +40,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     useState<ApprovalStatus>('PENDING')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: 'totalInteractions',
+    key: 'creatorAccount',
     direction: 'desc',
   })
 
@@ -60,10 +60,12 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   const [businessAccounts, setBusinessAccounts] = useState<any[]>([])
   const [dateRange, setDateRange] = useState({
     startDate: '',
+    endDate: '',
   })
 
   const [confirmedDateRange, setConfirmedDateRange] = useState({
     startDate: '',
+    endDate: '',
   })
 
   const dateChangeTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -76,6 +78,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     totalInteractions: 'Interacciones Totales',
     postEngagement: 'Post Engagement',
     outliers: 'Outliers',
+    publicationDate: 'Fecha de Publicación',
   }
 
   const tooltipDescriptions = {
@@ -179,6 +182,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
       limit: postsPerPage.toString(),
       page_number: page.toString(),
       account_ids: accountIds,
+      sort_by: sortConfig.key,
       sort_order: sortConfig.direction,
     }
 
@@ -193,8 +197,8 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     if (mediaType) params.content_format = mediaType
     if (selectedUsers.length > 0) params.creator_accounts = selectedUsers
 
-    if (confirmedDateRange.startDate)
-      params.min_date = confirmedDateRange.startDate
+    if (confirmedDateRange.startDate) params.min_date = confirmedDateRange.startDate
+    if (confirmedDateRange.endDate) params.max_date = confirmedDateRange.endDate
 
     if (approvalStatus !== 'PENDING') params.status = approvalStatus
 
@@ -234,30 +238,33 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   }
 
   const handleApproval = async (postId: string, status: string) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const newStatus = status === 'approved' ? 'APPROVED' : 'REJECTED';
-      
-      const success = await postService.updatePostStatus(postId, newStatus);
-      
+      const newStatus = status === 'approved' ? 'APPROVED' : 'REJECTED'
+
+      const success = await postService.updatePostStatus(postId, newStatus)
+
       if (success) {
         toast.success(
           `El post ha sido ${status === 'approved' ? 'aprobado' : 'rechazado'}.`
-        );
+        )
       } else {
         toast.error(
           `No se pudo ${status === 'approved' ? 'aprobar' : 'rechazar'} el post.`
-        );
+        )
       }
     } catch (error) {
-      console.error(`Error al ${status === 'approved' ? 'aprobar' : 'rechazar'} el post:`, error);
+      console.error(
+        `Error al ${status === 'approved' ? 'aprobar' : 'rechazar'} el post:`,
+        error
+      )
       toast.error(
         `Error al ${status === 'approved' ? 'aprobar' : 'rechazar'} el post.`
-      );
+      )
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Modal handling functions
   const openPostModal = (post: Post) => {
@@ -296,27 +303,50 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setDateRange((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
 
+    const newDateRange = {
+      ...dateRange,
+      [name]: value,
+    };
+
+    setDateRange(newDateRange);
+    
     if (dateChangeTimerRef.current) {
       clearTimeout(dateChangeTimerRef.current)
     }
 
     dateChangeTimerRef.current = setTimeout(() => {
-      setConfirmedDateRange((prev) => ({
-        ...prev,
-        [name]: value,
-      }))
-    }, 500)
+      if (newDateRange.startDate && newDateRange.endDate) {
+        setConfirmedDateRange(newDateRange);
+      } 
+      else if (!newDateRange.startDate && !newDateRange.endDate) {
+        setConfirmedDateRange({
+          startDate: '',
+          endDate: ''
+        });
+      }
+      else if ((name === 'startDate' && value === '' && !dateRange.endDate) ||
+               (name === 'endDate' && value === '' && !dateRange.startDate)) {
+        setConfirmedDateRange({
+          startDate: '',
+          endDate: ''
+        });
+      }
+    }, 500);
   }
 
-  const applyDateFilter = () => {
-    setConfirmedDateRange(dateRange)
-  }
-  // Function to sort columns
+  /* const applyDateFilter = () => {
+    if (dateRange.startDate && dateRange.endDate) {
+      setConfirmedDateRange(dateRange)
+    } else if (!dateRange.startDate && !dateRange.endDate) {
+      setConfirmedDateRange({
+        startDate: '',
+        endDate: '',
+      })
+    } else {
+      toast.warning('Por favor ingrese ambas fechas para filtrar')
+    }
+  } */
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc'
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -423,7 +453,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         </div>
 
         {/* Filtro de rango de fechas - Alineado */}
-        <div className="w-64">
+       {/*  <div className="w-64">
           <div className="flex h-[38px] gap-2">
             <input
               type="date"
@@ -436,22 +466,35 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                   : 'border-gray-300 bg-white text-gray-900'
               } border`}
               placeholder="Desde"
-              onBlur={applyDateFilter} // Aplicar filtro al perder el foco
             />
-            {/* Botón opcional para aplicar filtro */}
-            <button
-              onClick={applyDateFilter}
-              className={`rounded-r-md px-3 ${
-                isDarkMode
-                  ? 'bg-gray-700 text-white hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-              }`}
-              title="Aplicar filtro de fecha"
-            >
-              <Check size={16} />
-            </button>
           </div>
+          {dateRange.endDate && !dateRange.startDate ? (
+            <p className={`text-xs italic ${isDarkMode ? 'text-orange-300' : 'text-orange-500'}`}>
+              Seleccione fecha inicial para aplicar filtro
+            </p>
+          ) : null}
         </div>
+        <div className="w-64">
+        <div className="flex h-[38px] gap-2">
+            <input
+              type="date"
+              name="endDate"
+              value={dateRange.endDate}
+              onChange={handleDateChange}
+              className={`w-full rounded-l-md p-2 ${
+                isDarkMode
+                  ? 'border-gray-700 bg-gray-800 text-white'
+                  : 'border-gray-300 bg-white text-gray-900'
+              } border`}
+              placeholder="Hasta"
+            />
+          </div>
+          {dateRange.startDate && !dateRange.endDate ? (
+            <p className={`text-xs italic ${isDarkMode ? 'text-orange-300' : 'text-orange-500'}`}>
+              Seleccione fecha final para aplicar filtro
+            </p>
+          ) : null}
+        </div> */}
       </div>
       <div className="overflow-x-auto">
         <table
@@ -472,6 +515,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                 'totalInteractions',
                 'postEngagement',
                 'outliers',
+                'publicationDate',
               ].map((column) => (
                 <th
                   key={column}
@@ -590,6 +634,9 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                     {post.outliers
                       ? `${parseFloat(post.outliers).toFixed(2)}X`
                       : ''}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">
+                  {new Date(post.publicationDate).toLocaleDateString()}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center space-x-2">
