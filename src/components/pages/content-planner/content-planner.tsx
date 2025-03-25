@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   ChevronDown,
   ChevronUp,
@@ -58,17 +58,17 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   const [currentToken, setCurrentToken] = useState<string | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [businessAccounts, setBusinessAccounts] = useState<any[]>([])
-  const [dateRange, setDateRange] = useState({
+ /*  const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: '',
-  })
+  }) */
 
-  const [confirmedDateRange, setConfirmedDateRange] = useState({
-    startDate: '',
-    endDate: '',
-  })
+  // const [confirmedDateRange, setConfirmedDateRange] = useState({
+  //   startDate: '',
+  //   endDate: '',
+  // })
 
-  const dateChangeTimerRef = useRef<NodeJS.Timeout | null>(null)
+  //const dateChangeTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const columnNames = {
     contentFormat: 'Formato del Contenido',
@@ -165,8 +165,8 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     mediaType,
     approvalStatus,
     selectedUsers,
-    confirmedDateRange,
-    dateRange,
+    //confirmedDateRange,
+    //dateRange,
     sortConfig,
     accountIds,
   ])
@@ -197,8 +197,8 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     if (mediaType) params.content_format = mediaType
     if (selectedUsers.length > 0) params.creator_accounts = selectedUsers
 
-    if (confirmedDateRange.startDate) params.min_date = confirmedDateRange.startDate
-    if (confirmedDateRange.endDate) params.max_date = confirmedDateRange.endDate
+    //if (confirmedDateRange.startDate) params.min_date = confirmedDateRange.startDate
+    //if (confirmedDateRange.endDate) params.max_date = confirmedDateRange.endDate
 
     if (approvalStatus !== 'PENDING') params.status = approvalStatus
 
@@ -301,7 +301,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     setSelectedUsers(selectedValues)
   }
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /* const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
 
     const newDateRange = {
@@ -333,7 +333,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         });
       }
     }, 500);
-  }
+  } */
 
   /* const applyDateFilter = () => {
     if (dateRange.startDate && dateRange.endDate) {
