@@ -194,10 +194,17 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
   /**
    * Tooltip component for displaying additional information on hover
    */
-  const Tooltip: React.FC<TooltipProps> = ({ children, content }) => (
+  const Tooltip: React.FC<TooltipProps> = ({ children, content, isDarkMode }) => (
     <div className="group relative">
       {children}
-      <div className="invisible absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition group-hover:visible group-hover:opacity-100">
+      <div className={`
+        invisible absolute bottom-full left-1/2 z-10 mb-1 
+        -translate-x-1/2 transform whitespace-nowrap rounded 
+        ${isDarkMode 
+          ? 'bg-gray-700 text-white' 
+          : 'bg-gray-800 text-white'
+        } px-2 py-1 text-xs opacity-0 transition group-hover:visible group-hover:opacity-100`}
+      >
         {content}
       </div>
     </div>
@@ -205,10 +212,24 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-orange-50 to-white dark:from-gray-800 dark:to-gray-900">
+      <div 
+        className={`flex min-h-screen items-center justify-center ${
+          isDarkMode
+            ? 'bg-gradient-to-r from-gray-800 to-gray-900'
+            : 'bg-gradient-to-r from-orange-50 to-white'
+        }`}
+      >
         <div className="space-y-4 text-center">
-          <Loader className="mx-auto h-10 w-10 animate-spin text-orange-500" />
-          <p className="text-lg font-medium text-gray-600 dark:text-gray-300">
+          <Loader 
+            className={`mx-auto h-10 w-10 animate-spin ${
+              isDarkMode ? 'text-gray-300' : 'text-orange-500'
+            }`} 
+          />
+          <p 
+            className={`text-lg font-medium ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+            }`}
+          >
             Cargando cuentas...
           </p>
         </div>
@@ -218,10 +239,30 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-orange-50 to-white dark:from-gray-800 dark:to-gray-900">
-        <div className="space-y-4 rounded-lg bg-white p-8 text-center shadow-lg dark:bg-gray-800">
-          <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
-          <p className="text-lg font-medium text-red-500">Error: {error}</p>
+      <div 
+        className={`flex min-h-screen items-center justify-center ${
+          isDarkMode
+            ? 'bg-gradient-to-r from-gray-800 to-gray-900'
+            : 'bg-gradient-to-r from-orange-50 to-white'
+        }`}
+      >
+        <div 
+          className={`space-y-4 rounded-lg p-8 text-center shadow-lg ${
+            isDarkMode ? 'bg-gray-800' : 'bg-white'
+          }`}
+        >
+          <AlertCircle 
+            className={`mx-auto h-12 w-12 ${
+              isDarkMode ? 'text-red-400' : 'text-red-500'
+            }`} 
+          />
+          <p 
+            className={`text-lg font-medium ${
+              isDarkMode ? 'text-red-400' : 'text-red-500'
+            }`}
+          >
+            Error: {error}
+          </p>
         </div>
       </div>
     )
@@ -310,7 +351,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                         </h3>
   
                         <div className="flex flex-wrap gap-2">
-                          <Tooltip content="Engagement">
+                          <Tooltip content="Engagement" isDarkMode={isDarkMode}>
                             <span className="flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300">
                               <Percent className="mr-1 h-4 w-4" />
                               {account.average_engagement
@@ -321,7 +362,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                             </span>
                           </Tooltip>
   
-                          <Tooltip content="Interacciones">
+                          <Tooltip content="Interacciones" isDarkMode={isDarkMode}>
                             <span className="flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300">
                               <MessageCircle className="mr-1 h-4 w-4" />
                               {account.average_interactions_by_publication?.toLocaleString() ||
@@ -329,7 +370,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                             </span>
                           </Tooltip>
   
-                          <Tooltip content="Publicaciones">
+                          <Tooltip content="Publicaciones" isDarkMode={isDarkMode}>
                             <span className="flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-300">
                               <Image className="mr-1 h-4 w-4" />
                               {account.media_count?.toLocaleString() || 'N/A'}

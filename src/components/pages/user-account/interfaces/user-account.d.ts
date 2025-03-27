@@ -5,4 +5,5 @@ interface AccountTableProps {
 interface TooltipProps {
   children: React.ReactNode
   content: string
+  isDarkMode?: boolean
 }

@@ -58,7 +58,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   const [currentToken, setCurrentToken] = useState<string | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [businessAccounts, setBusinessAccounts] = useState<any[]>([])
- /*  const [dateRange, setDateRange] = useState({
+  /*  const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: '',
   }) */
@@ -394,11 +394,11 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
 
   return (
     <div
-      className={`p-4 md:p-6 ${
-        isDarkMode
-          ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white'
-          : 'bg-gradient-to-br from-orange-50 via-white to-orange-50 text-gray-900'
-      } min-h-screen`}
+    className={`p-4 md:p-6 ${
+      isDarkMode
+        ? 'bg-gradient-to-r from-gray-900 to-gray-950 text-gray-100'
+        : 'bg-gradient-to-br from-orange-50 via-white to-orange-50 text-gray-900'
+    } min-h-screen`}
     >
       <h1 className="mb-8 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-center text-4xl font-bold text-transparent">
         Planificador de Contenido
@@ -416,12 +416,12 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
               isDarkMode
                 ? 'border-gray-700 bg-gray-800 text-white'
                 : 'border-gray-300 bg-white text-gray-900'
-            } border`}
+            } border focus:outline-none focus:ring-2`}
           >
-            <option value="">Todos los tipos de publicación</option>
-            <option value="IMAGE">Imagen</option>
-            <option value="VIDEO">Video</option>
-            <option value="CAROUSEL_ALBUM">Carrusel</option>
+            <option value="" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Todos los tipos de publicación</option>
+            <option value="IMAGE" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Imagen</option>
+            <option value="VIDEO" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Video</option>
+            <option value="CAROUSEL_ALBUM" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Carrusel</option>
           </select>
         </div>
 
@@ -432,13 +432,13 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
             onChange={handleApprovalStatusChange}
             className={`w-full rounded-md p-2 ${
               isDarkMode
-                ? 'border-gray-700 bg-gray-800 text-white'
+                ? 'border-gray-600 bg-gray-800 text-gray-200 focus:border-gray-500 focus:ring-gray-500'
                 : 'border-gray-300 bg-white text-gray-900'
-            } border`}
+            } border focus:outline-none focus:ring-2`}
           >
-            <option value="PENDING">Pendientes</option>
-            <option value="APPROVED">Aprobados</option>
-            <option value="REJECTED">Rechazados</option>
+            <option value="PENDING" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Pendientes</option>
+            <option value="APPROVED" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Aprobados</option>
+            <option value="REJECTED" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Rechazados</option>
           </select>
         </div>
 
@@ -453,7 +453,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         </div>
 
         {/* Filtro de rango de fechas - Alineado */}
-       {/*  <div className="w-64">
+        {/*  <div className="w-64">
           <div className="flex h-[38px] gap-2">
             <input
               type="date"
@@ -499,13 +499,17 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
       <div className="overflow-x-auto">
         <table
           className={`min-w-full ${
-            isDarkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-900'
+            isDarkMode ? 'bg-gray-900 text-gray-200' : 'bg-white text-gray-900'
           } rounded-lg shadow-md`}
         >
-          <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
+          <thead className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium tracking-wider">
-                Preview
+                <div
+                  className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'}`}
+                >
+                  Vista Previa
+                </div>
               </th>
               {[
                 'contentFormat',
@@ -521,35 +525,49 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                   key={column}
                   className="px-4 py-3 text-left text-xs font-medium tracking-wider"
                 >
-                  <div className="relative inline-flex items-center">
-                    <button
-                      onClick={() => requestSort(column)}
-                      className="flex items-center"
-                    >
-                      {columnNames[column as keyof typeof columnNames]}{' '}
-                      {getSortIcon(column)}
-                    </button>
-                    <div className="group relative ml-1">
-                      <Info className="h-4 w-4 cursor-help text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" />
-                      <div className="invisible absolute left-0 top-full z-10 mt-2 w-72 -translate-x-1/2 transform rounded-md bg-white text-left text-xs opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:bg-gray-800">
-                        <div className="rounded-md border border-gray-200 bg-white p-3 text-gray-700 shadow-xl dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                          <div className="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-4 border-b-8 border-x-transparent border-b-white dark:border-b-gray-800"></div>
-                          {getFormattedTooltip(column)}
+                  <div
+                    className={`rounded-md p-2 ${
+                      isDarkMode
+                        ? 'bg-gray-700 text-gray-300'
+                        : 'bg-white text-gray-700'
+                    } group relative flex items-center justify-between`}
+                  >
+                    <div className="flex items-center">
+                      <span>
+                        {columnNames[column as keyof typeof columnNames]}
+                      </span>
+                      <div className="group relative ml-2">
+                        <Info className="h-4 w-4 cursor-help text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" />
+                        <div className="invisible absolute left-0 top-full z-10 mt-2 w-72 -translate-x-1/2 transform rounded-md bg-white text-left text-xs opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:bg-gray-800">
+                          <div className="rounded-md border border-gray-200 bg-white p-3 text-gray-700 shadow-xl dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                            <div className="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-4 border-b-8 border-x-transparent border-b-white dark:border-b-gray-800"></div>
+                            {getFormattedTooltip(column)}
+                          </div>
                         </div>
                       </div>
                     </div>
+                    <button
+                      onClick={() => requestSort(column)}
+                      className="ml-2"
+                    >
+                      {getSortIcon(column)}
+                    </button>
                   </div>
                 </th>
               ))}
               <th className="px-4 py-3 text-left text-xs font-medium tracking-wider">
-                Acciones
+                <div
+                  className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'}`}
+                >
+                  Acciones
+                </div>
               </th>
             </tr>
           </thead>
           <tbody
             className={`${
               isDarkMode
-                ? 'divide-y divide-gray-700'
+                ? 'divide-y divide-gray-700 bg-gray-900'
                 : 'divide-y divide-gray-200'
             }`}
           >
@@ -558,8 +576,8 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                 <tr
                   key={post.id}
                   className={`${
-                    isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-                  }`}
+                    isDarkMode ? 'hover:bg-gray-800 border-gray-700'  : 'hover:bg-gray-50'
+                  } border-b`}
                 >
                   <td className="whitespace-nowrap px-4 py-4">
                     {post.contentFormat === 'IMAGE' && (
@@ -636,7 +654,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                       : ''}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                  {new Date(post.publicationDate).toLocaleDateString()}
+                    {new Date(post.publicationDate).toLocaleDateString()}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center space-x-2">
@@ -680,7 +698,11 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={9} className="px-4 py-4 text-center text-gray-500">
+                <td colSpan={9} className={`px-4 py-4 text-center ${
+                    isDarkMode 
+                      ? 'text-gray-400 bg-gray-900' 
+                      : 'text-gray-500 bg-white'
+                  }`}>
                   No hay publicaciones que coincidan con los filtros
                   seleccionados.
                 </td>
@@ -693,14 +715,14 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
       {/* Reemplazar 'Load More' por paginación */}
       <div className="mt-6 flex items-center justify-center">
         <div
-          className={`flex items-center gap-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+          className={`flex items-center gap-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
         >
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={!prevPageToken || currentPage <= 1}
             className={`rounded-md px-4 py-2 ${
               isDarkMode
-                ? 'border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
+                ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
                 : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400'
             } border`}
           >
@@ -716,7 +738,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
             disabled={!nextPageToken || currentPage >= totalPages}
             className={`rounded-md px-4 py-2 ${
               isDarkMode
-                ? 'border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
+                ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
                 : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400'
             } border`}
           >
