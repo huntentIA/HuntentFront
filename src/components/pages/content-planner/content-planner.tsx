@@ -58,17 +58,17 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   const [currentToken, setCurrentToken] = useState<string | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [businessAccounts, setBusinessAccounts] = useState<any[]>([])
-  const [dateRange, setDateRange] = useState({
+ /*  const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: '',
-  })
+  }) */
 
-  const [confirmedDateRange, setConfirmedDateRange] = useState({
+  /* const [confirmedDateRange, setConfirmedDateRange] = useState({
     startDate: '',
     endDate: '',
-  })
+  }) */
 
-  const [showApplyButton, setShowApplyButton] = useState(false)
+  //const [showApplyButton, setShowApplyButton] = useState(false)
 
   const columnNames = {
     contentFormat: 'Formato del Contenido',
@@ -296,7 +296,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     setSelectedUsers(selectedValues)
   }
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+ /*  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
 
     setDateRange(prev => ({
@@ -307,12 +307,12 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     const newDateRange = {
       ...dateRange,
       [name]: value
-    }
+    } 
     
     setShowApplyButton(!!newDateRange.startDate && !!newDateRange.endDate)
-  }
+  } */
 
-  const applyDateFilter = () => {
+/*   const applyDateFilter = () => {
     if (dateRange.startDate && dateRange.endDate) {
       if (new Date(dateRange.startDate) > new Date(dateRange.endDate)) {
         toast.warning('La fecha inicial no puede ser posterior a la fecha final')
@@ -325,9 +325,9 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     } else {
       toast.warning('Por favor ingrese ambas fechas para filtrar')
     }
-  }
+  } */
 
-  const clearDateFilter = () => {
+/*   const clearDateFilter = () => {
     const emptyDates = {
       startDate: '',
       endDate: ''
@@ -336,7 +336,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     setConfirmedDateRange(emptyDates)
     setShowApplyButton(false)
     toast.info('Filtro de fechas eliminado')
-  }
+  } */
 
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc'
@@ -444,7 +444,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         </div>
 
         {/* Fecha inicial */}
-        <div className="w-64">
+        {/* <div className="w-64">
           <div className="relative">
             <input
               type="date"
@@ -464,10 +464,10 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
               </svg>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Fecha final */}
-        <div className="w-64">
+        {/* <div className="w-64">
           <div className="relative">
             <input
               type="date"
@@ -487,10 +487,10 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
               </svg>
             </div>
           </div>
-        </div>
+        </div> */}
         
         {/* Botones para aplicar/limpiar filtro */}
-        <div className="flex items-center space-x-2">
+        {/* <div className="flex items-center space-x-2">
           {showApplyButton && (
             <button
               onClick={applyDateFilter}
@@ -515,15 +515,15 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
               Limpiar
             </button>
           )}
-        </div>
+        </div> */}
       </div>
 
       {/* Mensaje de filtro activo */}
-      {confirmedDateRange.startDate && confirmedDateRange.endDate && (
+      {/* {confirmedDateRange.startDate && confirmedDateRange.endDate && (
         <div className={`mb-4 text-sm ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>
           Filtro de fechas activo: {new Date(confirmedDateRange.startDate).toLocaleDateString()} - {new Date(confirmedDateRange.endDate).toLocaleDateString()}
         </div>
-      )}
+      )} */}
 
       <div className="overflow-x-auto">
         <table
