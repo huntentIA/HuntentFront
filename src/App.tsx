@@ -71,7 +71,7 @@ function App() {
   return (
     <BrowserRouter>
       <div
-        className={`flex min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}
+        className={`flex h-auto w-full ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}
       >
         {isAuthenticated && (
           <Sidebar isDarkMode={isDarkMode} isOpen={isSidebarOpen} />

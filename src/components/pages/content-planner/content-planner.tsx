@@ -58,17 +58,17 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   const [currentToken, setCurrentToken] = useState<string | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [businessAccounts, setBusinessAccounts] = useState<any[]>([])
-  /*  const [dateRange, setDateRange] = useState({
+  const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: '',
-  }) */
+  })
 
-  // const [confirmedDateRange, setConfirmedDateRange] = useState({
-  //   startDate: '',
-  //   endDate: '',
-  // })
+  const [confirmedDateRange, setConfirmedDateRange] = useState({
+    startDate: '',
+    endDate: '',
+  })
 
-  //const dateChangeTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [showApplyButton, setShowApplyButton] = useState(false)
 
   const columnNames = {
     contentFormat: 'Formato del Contenido',
@@ -165,8 +165,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     mediaType,
     approvalStatus,
     selectedUsers,
-    //confirmedDateRange,
-    //dateRange,
     sortConfig,
     accountIds,
   ])
@@ -196,9 +194,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
 
     if (mediaType) params.content_format = mediaType
     if (selectedUsers.length > 0) params.creator_accounts = selectedUsers
-
-    //if (confirmedDateRange.startDate) params.min_date = confirmedDateRange.startDate
-    //if (confirmedDateRange.endDate) params.max_date = confirmedDateRange.endDate
 
     if (approvalStatus !== 'PENDING') params.status = approvalStatus
 
@@ -301,52 +296,48 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     setSelectedUsers(selectedValues)
   }
 
-  /* const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
+
+    setDateRange(prev => ({
+      ...prev,
+      [name]: value
+    }))
 
     const newDateRange = {
       ...dateRange,
-      [name]: value,
-    };
-
-    setDateRange(newDateRange);
-    
-    if (dateChangeTimerRef.current) {
-      clearTimeout(dateChangeTimerRef.current)
+      [name]: value
     }
+    
+    setShowApplyButton(!!newDateRange.startDate && !!newDateRange.endDate)
+  }
 
-    dateChangeTimerRef.current = setTimeout(() => {
-      if (newDateRange.startDate && newDateRange.endDate) {
-        setConfirmedDateRange(newDateRange);
-      } 
-      else if (!newDateRange.startDate && !newDateRange.endDate) {
-        setConfirmedDateRange({
-          startDate: '',
-          endDate: ''
-        });
-      }
-      else if ((name === 'startDate' && value === '' && !dateRange.endDate) ||
-               (name === 'endDate' && value === '' && !dateRange.startDate)) {
-        setConfirmedDateRange({
-          startDate: '',
-          endDate: ''
-        });
-      }
-    }, 500);
-  } */
-
-  /* const applyDateFilter = () => {
+  const applyDateFilter = () => {
     if (dateRange.startDate && dateRange.endDate) {
+      if (new Date(dateRange.startDate) > new Date(dateRange.endDate)) {
+        toast.warning('La fecha inicial no puede ser posterior a la fecha final')
+        return
+      }
+      
       setConfirmedDateRange(dateRange)
-    } else if (!dateRange.startDate && !dateRange.endDate) {
-      setConfirmedDateRange({
-        startDate: '',
-        endDate: '',
-      })
+      setShowApplyButton(false)
+      toast.success('Filtro de fechas aplicado')
     } else {
       toast.warning('Por favor ingrese ambas fechas para filtrar')
     }
-  } */
+  }
+
+  const clearDateFilter = () => {
+    const emptyDates = {
+      startDate: '',
+      endDate: ''
+    }
+    setDateRange(emptyDates)
+    setConfirmedDateRange(emptyDates)
+    setShowApplyButton(false)
+    toast.info('Filtro de fechas eliminado')
+  }
+
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc'
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -359,12 +350,13 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   const getSortIcon = (columnName: string) => {
     if (sortConfig.key === columnName) {
       return sortConfig.direction === 'asc' ? (
-        <ChevronUp size={14} />
+        <ChevronUp size={14} className={`${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`} />
       ) : (
-        <ChevronDown size={14} />
+        <ChevronDown size={14} className={`${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`} />
       )
     }
-    return null
+    // Mostrar un icono gris más claro cuando la columna no está ordenada
+    return <ChevronDown size={14} className={`opacity-50 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />;
   }
   const getFormattedTooltip = (column: string) => {
     const tooltip =
@@ -396,16 +388,15 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     <div
     className={`p-4 md:p-6 ${
       isDarkMode
-        ? 'bg-gradient-to-r from-gray-900 to-gray-950 text-gray-100'
+        ? 'bg-gray-900 text-gray-100'
         : 'bg-gradient-to-br from-orange-50 via-white to-orange-50 text-gray-900'
-    } min-h-screen`}
+    } h-auto w-full`}
     >
       <h1 className="mb-8 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-center text-4xl font-bold text-transparent">
         Planificador de Contenido
       </h1>
 
-      {/* Mostrar solo un CustomerStatsCard para el perfil seleccionado */}
-      {/* Filtros - Sección modificada */}
+      {/* Filtros - Sección completa rediseñada */}
       <div className="mb-6 flex flex-wrap items-start gap-4">
         {/* Filtro por tipo de publicación */}
         <div className="w-64">
@@ -416,7 +407,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
               isDarkMode
                 ? 'border-gray-700 bg-gray-800 text-white'
                 : 'border-gray-300 bg-white text-gray-900'
-            } border focus:outline-none focus:ring-2`}
+            } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
           >
             <option value="" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Todos los tipos de publicación</option>
             <option value="IMAGE" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Imagen</option>
@@ -432,9 +423,9 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
             onChange={handleApprovalStatusChange}
             className={`w-full rounded-md p-2 ${
               isDarkMode
-                ? 'border-gray-600 bg-gray-800 text-gray-200 focus:border-gray-500 focus:ring-gray-500'
+                ? 'border-gray-700 bg-gray-800 text-gray-200'
                 : 'border-gray-300 bg-white text-gray-900'
-            } border focus:outline-none focus:ring-2`}
+            } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
           >
             <option value="PENDING" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Pendientes</option>
             <option value="APPROVED" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Aprobados</option>
@@ -442,7 +433,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
           </select>
         </div>
 
-        {/* Filtro por usuario - Multiselect mejorado */}
+        {/* Filtro por usuario */}
         <div className="w-64">
           <CustomMultiSelect
             selectedUsers={selectedUsers}
@@ -452,50 +443,88 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
           />
         </div>
 
-        {/* Filtro de rango de fechas - Alineado */}
-        {/*  <div className="w-64">
-          <div className="flex h-[38px] gap-2">
+        {/* Fecha inicial */}
+        <div className="w-64">
+          <div className="relative">
             <input
               type="date"
               name="startDate"
               value={dateRange.startDate}
               onChange={handleDateChange}
-              className={`w-full rounded-l-md p-2 ${
+              placeholder="dd/mm/aaaa"
+              className={`w-full rounded-md p-2 ${
                 isDarkMode
-                  ? 'border-gray-700 bg-gray-800 text-white'
-                  : 'border-gray-300 bg-white text-gray-900'
-              } border`}
-              placeholder="Desde"
+                  ? 'border-gray-700 bg-gray-800 text-white placeholder-gray-500'
+                  : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
+              } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
             />
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+              <svg className={`h-4 w-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
           </div>
-          {dateRange.endDate && !dateRange.startDate ? (
-            <p className={`text-xs italic ${isDarkMode ? 'text-orange-300' : 'text-orange-500'}`}>
-              Seleccione fecha inicial para aplicar filtro
-            </p>
-          ) : null}
         </div>
+
+        {/* Fecha final */}
         <div className="w-64">
-        <div className="flex h-[38px] gap-2">
+          <div className="relative">
             <input
               type="date"
               name="endDate"
               value={dateRange.endDate}
               onChange={handleDateChange}
-              className={`w-full rounded-l-md p-2 ${
+              placeholder="dd/mm/aaaa"
+              className={`w-full rounded-md p-2 ${
                 isDarkMode
-                  ? 'border-gray-700 bg-gray-800 text-white'
-                  : 'border-gray-300 bg-white text-gray-900'
-              } border`}
-              placeholder="Hasta"
+                  ? 'border-gray-700 bg-gray-800 text-white placeholder-gray-500'
+                  : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
+              } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
             />
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+              <svg className={`h-4 w-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
           </div>
-          {dateRange.startDate && !dateRange.endDate ? (
-            <p className={`text-xs italic ${isDarkMode ? 'text-orange-300' : 'text-orange-500'}`}>
-              Seleccione fecha final para aplicar filtro
-            </p>
-          ) : null}
-        </div> */}
+        </div>
+        
+        {/* Botones para aplicar/limpiar filtro */}
+        <div className="flex items-center space-x-2">
+          {showApplyButton && (
+            <button
+              onClick={applyDateFilter}
+              className={`rounded-md px-4 py-2 text-sm ${
+                isDarkMode
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                  : 'bg-orange-500 hover:bg-orange-600 text-white'
+              } transition-colors`}
+            >
+              Aplicar filtro
+            </button>
+          )}
+          {(confirmedDateRange.startDate || confirmedDateRange.endDate) && (
+            <button
+              onClick={clearDateFilter}
+              className={`rounded-md px-4 py-2 text-sm ${
+                isDarkMode
+                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+              } transition-colors`}
+            >
+              Limpiar
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Mensaje de filtro activo */}
+      {confirmedDateRange.startDate && confirmedDateRange.endDate && (
+        <div className={`mb-4 text-sm ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+          Filtro de fechas activo: {new Date(confirmedDateRange.startDate).toLocaleDateString()} - {new Date(confirmedDateRange.endDate).toLocaleDateString()}
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table
           className={`min-w-full ${
@@ -506,7 +535,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium tracking-wider">
                 <div
-                  className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'}`}
+                  className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}`}
                 >
                   Vista Previa
                 </div>
@@ -528,7 +557,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                   <div
                     className={`rounded-md p-2 ${
                       isDarkMode
-                        ? 'bg-gray-700 text-gray-300'
+                        ? 'bg-gray-800 text-gray-300'
                         : 'bg-white text-gray-700'
                     } group relative flex items-center justify-between`}
                   >
@@ -537,7 +566,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                         {columnNames[column as keyof typeof columnNames]}
                       </span>
                       <div className="group relative ml-2">
-                        <Info className="h-4 w-4 cursor-help text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" />
+                        <Info className="h-4 w-4 cursor-help text-gray-500 hover:text-gray-300 dark:text-gray-400 dark:hover:text-gray-300" />
                         <div className="invisible absolute left-0 top-full z-10 mt-2 w-72 -translate-x-1/2 transform rounded-md bg-white text-left text-xs opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:bg-gray-800">
                           <div className="rounded-md border border-gray-200 bg-white p-3 text-gray-700 shadow-xl dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
                             <div className="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-4 border-b-8 border-x-transparent border-b-white dark:border-b-gray-800"></div>
@@ -548,7 +577,11 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                     </div>
                     <button
                       onClick={() => requestSort(column)}
-                      className="ml-2"
+                      className={`ml-2 p-1 rounded-full hover:bg-opacity-20 ${
+                        isDarkMode 
+                          ? 'hover:bg-orange-400 text-gray-300' 
+                          : 'hover:bg-orange-500 text-gray-700'
+                      } transition-colors`}
                     >
                       {getSortIcon(column)}
                     </button>
@@ -557,7 +590,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
               ))}
               <th className="px-4 py-3 text-left text-xs font-medium tracking-wider">
                 <div
-                  className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'}`}
+                  className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}`}
                 >
                   Acciones
                 </div>

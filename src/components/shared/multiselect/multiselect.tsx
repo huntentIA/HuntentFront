@@ -4,7 +4,7 @@ import { ChevronDown, X } from 'lucide-react';
 interface CustomMultiSelectProps {
   selectedUsers: string[];
   handleUserChange: (event: { target: { options: { value: string; selected: boolean }[]; value: string[] } }) => void;
-  businessAccounts: { id: string; short_description?: string; accountName?: string }[];
+  businessAccounts: { id: string; accountName?: string }[];
   isDarkMode: boolean;
 }
 
@@ -69,8 +69,8 @@ const CustomMultiSelect: React.FC<CustomMultiSelectProps> = ({ selectedUsers, ha
 
   // Get display name for each account
   const getAccountDisplayName = (id: string) => {
-    const account = businessAccounts.find(acc => acc.id === id || acc.short_description === id || acc.accountName === id);
-    return account ? (account.short_description || account.accountName) : id;
+    const account = businessAccounts.find(acc => acc.id === id || acc.accountName === id || acc.accountName === id);
+    return account ? (account.accountName || account.accountName) : id;
   };
 
   return (
@@ -130,10 +130,10 @@ const CustomMultiSelect: React.FC<CustomMultiSelectProps> = ({ selectedUsers, ha
             Todos los creadores
           </div>
           {businessAccounts.map((account) => {
-            const displayName = account.short_description || account.accountName || '';
+            const displayName = account.accountName || '';
             return (
               <div 
-                key={account.short_description} 
+                key={account.accountName} 
                 className={`px-4 py-2 cursor-pointer ${
                   isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                 } ${selectedOptions.includes(account.accountName || '') || selectedOptions.includes(displayName) ? 
