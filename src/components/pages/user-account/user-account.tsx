@@ -20,6 +20,7 @@ import {
   PublicationBasicData,
 } from '../../../services/interfaces/referent-search-service'
 
+
 // Define interfaces for data structures
 interface UserData {
   id: string
@@ -374,6 +375,18 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                             <span className="flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-300">
                               <Image className="mr-1 h-4 w-4" />
                               {account.media_count?.toLocaleString() || 'N/A'}
+                            </span>
+                          </Tooltip>
+
+                          <Tooltip content="Post analizados por huntent" isDarkMode={isDarkMode}>
+                            <span className="flex items-center rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-300">
+                              <img 
+                                src="/huntent.ico" 
+                                alt="Huntent" 
+                                className="mr-1 h-4 w-4" 
+                                style={{borderRadius: '30%'}} 
+                              />
+                              {account.posts_count?.toLocaleString() || '0'}
                             </span>
                           </Tooltip>
                         </div>

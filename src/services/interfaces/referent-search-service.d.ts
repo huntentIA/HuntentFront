@@ -50,4 +50,5 @@ interface AccountData {
   publication_basic_data?: PublicationBasicData[]
   businessAccountId?: string
   updated_at?: Date
+  posts_count?: number
 }

@@ -56,6 +56,8 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   const [nextPageToken, setNextPageToken] = useState<string | null>(null)
   const [prevPageToken, setPrevPageToken] = useState<string | null>(null)
   const [currentToken, setCurrentToken] = useState<string | null>(null)
+  const [loadingPrevPage, setLoadingPrevPage] = useState<boolean>(false)
+  const [loadingNextPage, setLoadingNextPage] = useState<boolean>(false)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [businessAccounts, setBusinessAccounts] = useState<any[]>([])
  /*  const [dateRange, setDateRange] = useState({
@@ -171,7 +173,12 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= totalPages) {
-      loadPosts(newPage)
+      if (newPage > currentPage) {
+        setLoadingNextPage(true);
+      } else {
+        setLoadingPrevPage(true);
+      }
+      loadPosts(newPage);
     }
   }
 
@@ -229,6 +236,8 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
       setPosts([])
     } finally {
       setLoading(false)
+      setLoadingPrevPage(false)
+      setLoadingNextPage(false)
     }
   }
 
@@ -752,14 +761,24 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         >
           <button
             onClick={() => handlePageChange(currentPage - 1)}
-            disabled={!prevPageToken || currentPage <= 1}
+            disabled={!prevPageToken || currentPage <= 1 || loadingPrevPage}
             className={`rounded-md px-4 py-2 ${
               isDarkMode
                 ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
                 : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400'
-            } border`}
+            } border flex items-center justify-center min-w-[100px]`}
           >
-            Anterior
+            {loadingPrevPage ? (
+              <div className="flex items-center">
+                <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Cargando</span>
+              </div>
+            ) : (
+              'Anterior'
+            )}
           </button>
 
           <span>
@@ -768,14 +787,24 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
 
           <button
             onClick={() => handlePageChange(currentPage + 1)}
-            disabled={!nextPageToken || currentPage >= totalPages}
+            disabled={!nextPageToken || currentPage >= totalPages || loadingNextPage}
             className={`rounded-md px-4 py-2 ${
               isDarkMode
                 ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
                 : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400'
-            } border`}
+            } border flex items-center justify-center min-w-[100px]`}
           >
-            Siguiente
+            {loadingNextPage ? (
+              <div className="flex items-center">
+                <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Cargando</span>
+              </div>
+            ) : (
+              'Siguiente'
+            )}
           </button>
         </div>
       </div>
