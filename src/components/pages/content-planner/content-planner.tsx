@@ -613,7 +613,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                 : 'divide-y divide-gray-200'
             }`}
           >
-            {posts?.length > 0 ? (
+            {posts && posts.length > 0 ? (
               posts.map((post) => (
                 <tr
                   key={post.id}
@@ -677,13 +677,13 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                     {post.creatorAccount}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {post.likes.toLocaleString()}
+                    {(post.likes ? post.likes.toLocaleString() : 0)}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {post.comments.toLocaleString()}
+                    {(post.comments ? post.comments.toLocaleString() : 0)}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {post.totalInteractions.toLocaleString()}
+                    {(post.totalInteractions ? post.totalInteractions.toLocaleString() : 0)}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     {post.postEngagement
@@ -696,7 +696,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                       : ''}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {new Date(post.publicationDate).toLocaleDateString()}
+                    {post.publicationDate ? new Date(post.publicationDate).toLocaleDateString() : ''}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center space-x-2">
