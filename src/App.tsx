@@ -12,7 +12,7 @@ import UserAccount from './components/pages/user-account/user-account'
 import ContentPlanner from './components/pages/content-planner/content-planner'
 import KnowledgeBaseForm from './components/pages/knowledge-base/knowledge-base-form/knowledge-base-form'
 import KnowledgeBaseView from './components/pages/knowledge-base/knowledge-base-view/knoledge-base-view'
-
+import ApproveContentPlanner from './components/pages/content-planner/approve-content-planner'
 interface User {
   id: string
 }
@@ -168,6 +168,14 @@ function App() {
                   <KnowledgeBaseView isDarkMode={isDarkMode} />
                   </PrivateRoute>
                 } 
+              />
+              <Route
+                path="/approveContentPlanner"
+                element={
+                  <PrivateRoute isAuthenticated={isAuthenticated}>
+                    <ApproveContentPlanner isDarkMode={isDarkMode} />
+                  </PrivateRoute>
+                }
               />
             </Routes>
           </main>

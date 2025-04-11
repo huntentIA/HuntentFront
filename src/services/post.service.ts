@@ -243,6 +243,24 @@ const postService = {
       throw error
     }
   },
+
+  /**
+   * Genera un reporte Excel de las publicaciones
+   * @param accountIds IDs de las cuentas
+   * @returns Blob con el contenido del archivo Excel
+   */
+  generateExcelReport: async (accountIds: string[]): Promise<Blob> => {
+    try {
+      const accountIdsString = accountIds.join(',')
+      const { data } = await httpClient.get(`/api/posts?report=excel&account_ids=${accountIdsString}`, {
+        responseType: 'blob'
+      })
+      return data as Blob
+    } catch (error) {
+      console.error('Error al generar el reporte Excel:', error)
+      throw error
+    }
+  },
 }
 
 export default postService

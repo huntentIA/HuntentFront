@@ -3,7 +3,7 @@ import { NavLink} from 'react-router-dom'
 import { BusinessesAccountResponse } from '../../../services/interfaces/business-service'
 import { getBusinessAccountsByIdResponse } from '../../../services/interfaces/business-account-service'
 import businessAccountService from '../../../services/business-account.service' */
-import { Brain, HardDrive, Users } from 'lucide-react'
+import { Brain, HardDrive, Users, Check } from 'lucide-react'
 import logo from '../../../assets/huntent-logo.webp'
 const Sidebar: React.FC<SidebarProps> = ({ isDarkMode, isOpen }) => {
   return (
@@ -67,6 +67,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isDarkMode, isOpen }) => {
               to="/contentPlanner"
               icon={<Brain size={20} />}
               label="Planificador de Contenido"
+              isDarkMode={isDarkMode}
+            />
+            <SidebarItem
+              to="/approveContentPlanner"
+              icon={<Check size={20} />}
+              label="Publicaciones Aprobadas"
               isDarkMode={isDarkMode}
             />
           </ul>
