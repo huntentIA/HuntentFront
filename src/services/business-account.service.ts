@@ -28,7 +28,8 @@ const businessAccountService = {
   },
 
   getAccountByBusinessId: async (
-    businessId: string
+    businessId: string,
+    includePostsCount: boolean = false
   ): Promise<getBusinessAccountsByIdResponse> => {
     try {
       const response = await httpClient.get<getBusinessAccountsByIdResponse>(
@@ -36,6 +37,7 @@ const businessAccountService = {
         {
           params: {
             businessId,
+            includePostsCount,
           },
         }
       )

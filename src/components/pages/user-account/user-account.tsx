@@ -67,7 +67,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
 
       const businessId = businessResponse[0].id
       const data: getBusinessAccountsByIdResponse =
-        await businessAccountService.getAccountByBusinessId(businessId)
+        await businessAccountService.getAccountByBusinessId(businessId, true)
 
       setAccounts(data)
       setLoading(false)
