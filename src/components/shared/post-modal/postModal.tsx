@@ -150,7 +150,7 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
 
           <div className="mt-4 space-y-2">
             <h3 className="text-sm text-gray-600">Transcripción del video</h3>
-            {videoTranscript ? (
+            {videoTranscript || status === 'APPROVED' ? (
               <div className="min-h-[100px] rounded-lg bg-gray-100 p-3">
                 {videoTranscript}
               </div>
@@ -366,6 +366,7 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
             )}
 
             {/* Botones de aprobación */}
+            {status !== 'APPROVED' && (
             <div className="flex gap-4">
               <button
                 onClick={() => handleApproval(post,'REJECTED')}
@@ -382,6 +383,7 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
                 APROBAR
               </button>
             </div>
+            )}
           </div>
         </div>
       </div>
