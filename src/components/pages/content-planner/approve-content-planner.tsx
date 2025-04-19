@@ -50,6 +50,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   const [accountIds, setAccountIds] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
   const [nextPageToken, setNextPageToken] = useState<string | null>(null)
   const [prevPageToken, setPrevPageToken] = useState<string | null>(null)
   const [currentToken, setCurrentToken] = useState<string | null>(null)
@@ -206,7 +207,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       }
 
       setPosts(response.items)
-
+      setTotalItems(response.total_items || 0)
       setTotalPages(response.total_pages || 1)
       setCurrentPage(response.page_number || 1)
 
@@ -218,6 +219,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       setError('Error loading posts. Please try again.')
       toast.error('Error cargando publicaciones')
       setPosts([])
+      setTotalItems(0)
     } finally {
       setLoading(false)
       setLoadingPrevPage(false)
@@ -359,15 +361,26 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
 
   return (
     <div
-      className={`p-4 md:p-6 ${
+      className={`min-h-screen p-4 md:p-6 ${
         isDarkMode
-          ? 'bg-gray-900 text-gray-100'
-          : 'bg-gradient-to-br from-orange-50 via-white to-orange-50 text-gray-900'
-      } h-auto w-full`}
+          ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white'
+          : 'bg-gradient-to-r from-orange-50 to-white text-gray-900'
+      }`}
     >
       <h1 className="mb-8 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-center text-4xl font-bold text-transparent">
         Publicaciones Aprobadas
       </h1>
+
+      {/* Total de publicaciones */}
+      <div className={`mb-6 flex justify-start w-60 inline-block rounded-lg ${
+        isDarkMode ? 'bg-gray-800' : 'bg-gray-50'
+      } px-4 py-2 shadow-sm`}>
+        <p className={`text-md font-medium ${
+          isDarkMode ? 'text-gray-300' : 'text-gray-700'
+        }`}>
+          Total publicaciones: <span className="font-bold text-orange-500">{totalItems}</span>
+        </p>
+      </div>
 
       {/* Filtros - Sección completa rediseñada */}
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">

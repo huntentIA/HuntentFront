@@ -78,7 +78,7 @@ function App() {
         )}
 
         <div
-          className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}
+          className={`flex-1 transition-all duration-300 h-auto w-full ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}
         >
           {isAuthenticated && (
             <header
