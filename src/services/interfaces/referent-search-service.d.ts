@@ -29,6 +29,7 @@ export interface PublicationBasicData {
   media_url: string 
   engagement: number
   outliers: number
+  carousel_items: CarouselMediaItem[] | null
 }
 
 interface AccountData {
@@ -51,4 +52,9 @@ interface AccountData {
   businessAccountId?: string
   updated_at?: Date
   posts_count?: number
+}
+
+interface CarouselMediaItem {
+  media_type: string;
+  media_url: string;
 }

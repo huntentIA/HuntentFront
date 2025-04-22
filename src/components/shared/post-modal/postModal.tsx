@@ -118,6 +118,7 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
     cta,
     status,
     videoTranscript,
+    carousel_items,
   } = post
 
   const carouselSettings = {
@@ -130,8 +131,29 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
   }
 
   const renderMedia = (): React.ReactNode => {
-    if (!mediaURL) {
+    if (!mediaURL && !carousel_items) {
       return <div className="aspect-square w-full rounded-lg bg-gray-100" />
+    }
+
+    if (contentFormat === 'CAROUSEL_ALBUM' && post.carousel_items && Array.isArray(post.carousel_items) && post.carousel_items.length > 0) {
+      return (
+        <Slider {...carouselSettings} className="mb-4">
+          {Array.from({length: post.carousel_items.length}).map((_, index) => {
+            const item = post.carousel_items?.[index] as unknown as {media_url: string};
+            if (!item || !item.media_url) return null;
+            
+            return (
+              <div key={index} className="outline-none">
+                <img
+                  src={item.media_url}
+                  alt={`Slide ${index + 1}`}
+                  className="aspect-square w-full rounded-lg bg-gray-100 object-cover"
+                />
+              </div>
+            );
+          })}
+        </Slider>
+      )
     }
 
     if (contentFormat === 'VIDEO') {
@@ -150,7 +172,7 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
 
           <div className="mt-4 space-y-2">
             <h3 className="text-sm text-gray-600">Transcripción del video</h3>
-            {videoTranscript || status === 'APPROVED' ? (
+            {videoTranscript ? (
               <div className="min-h-[100px] rounded-lg bg-gray-100 p-3">
                 {videoTranscript}
               </div>
@@ -177,30 +199,14 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
       )
     }
 
-    if (contentFormat === 'IMAGE' || contentFormat === 'CAROUSEL_ALBUM') {
-      if (Array.isArray(mediaURL)) {
-        return (
-          <Slider {...carouselSettings} className="mb-4">
-            {mediaURL.map((url, index) => (
-              <div key={index}>
-                <img
-                  src={url}
-                  alt={`Slide ${index + 1}`}
-                  className="aspect-square w-full rounded-lg bg-gray-100 object-cover"
-                />
-              </div>
-            ))}
-          </Slider>
-        )
-      } else {
-        return (
-          <img
-            src={mediaURL}
-            alt={caption || 'Imagen del post'}
-            className="aspect-square w-full rounded-lg bg-gray-100 object-cover"
-          />
-        )
-      }
+    if (contentFormat === 'IMAGE') {
+      return (
+        <img
+          src={typeof mediaURL === 'string' ? mediaURL : Array.isArray(mediaURL) ? mediaURL[0] : ''}
+          alt={caption || 'Imagen del post'}
+          className="aspect-square w-full rounded-lg bg-gray-100 object-cover"
+        />
+      )
     }
 
     return <div className="aspect-square w-full rounded-lg bg-gray-100" />

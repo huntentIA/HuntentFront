@@ -31,6 +31,7 @@ export interface Post {
   rights?: string
   cta?: string
   averageEngagement?: number
+  carousel_items?: string[]
   // Add any other properties your posts have
 }
 
