@@ -363,7 +363,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
             <div className="flex items-center gap-4">
               <div className="flex items-center rounded-lg bg-orange-100 px-3 py-1 text-orange-600 dark:bg-gray-700 dark:text-orange-400">
                 <span className="text-sm font-medium">
-                  {accounts?.accounts.length} referentes
+                  {accounts?.accounts.length || 0}  referentes 
                 </span>
               </div>
               <div className="flex items-center rounded-lg bg-blue-100 px-3 py-1 text-blue-600 dark:bg-gray-700 dark:text-blue-400">
@@ -426,13 +426,13 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                           className={`text-base font-semibold cursor-pointer hover:text-orange-500 transition-colors ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}
                           onClick={() => navigateToContentPlanner(account.accountName)}
                         >
-                          {account.accountName}
+                          {account.accountName || 'N/A'}
                         </h3>
                         <p
                           className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
                         >
                           @
-                          {account.accountName.toLowerCase().replace(/\s/g, '')}
+                          {account.accountName.toLowerCase().replace(/\s/g, '') || 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -444,14 +444,14 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                         >
                           {account.industry
                             ?.map((industry) => industry)
-                            .join(', ')}
+                            .join(', ') || 'N/A'}
                         </span>
                       </div>
                       <div className="flex items-center justify-end">
                         <span
                           className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
                         >
-                          {account.media_count || 2699}
+                          {account.media_count || 0}
                         </span>
                       </div>
                     </div>
@@ -470,7 +470,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                       <p
                         className={`mb-4 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
                       >
-                        {account.detailed_description}
+                        {account.detailed_description || 'N/A'}
                       </p>
                     )}
 
@@ -486,7 +486,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                                 : 'border border-blue-100 bg-blue-50 text-blue-800'
                             }`}
                           >
-                            {topic}
+                            {topic || 'N/A'}
                           </div>
                         ))}
                       </div>
@@ -550,7 +550,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                                 : 'bg-gray-100 text-gray-700'
                             }`}
                           >
-                            {account.language_region?.split(',')[1].trim()}
+                            {account.language_region?.split(',')[1].trim() || 'N/A'}
                           </span>
                         </div>
 
@@ -567,7 +567,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                                 : 'bg-gray-100 text-gray-700'
                             }`}
                           >
-                            {account.language_region?.split(',')[0].trim()}
+                            {account.language_region?.split(',')[0].trim() || 'N/A'}
                           </span>
                         </div>
                       </div>
