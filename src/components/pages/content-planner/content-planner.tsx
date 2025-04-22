@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   ChevronDown,
   ChevronUp,
@@ -23,6 +24,7 @@ import BussinessService from '../../../services/business.service'
 import { getBusinessAccountsByIdResponse } from '../../../services/interfaces/business-account-service'
 import CustomMultiSelect from '../../shared/multiselect/multiselect'
 import { tooltipDescriptions } from '../../../utils/toolDescriptions'
+
 interface UserData {
   id: string
   // Otros campos de usuario
@@ -35,6 +37,10 @@ interface ContentPlannerProps {
 export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   isDarkMode,
 }) => {
+  // Obtener datos de navegación (si proviene de user-account)
+  const location = useLocation()
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  
   // States for filters and configuration
   const [mediaType, setMediaType] = useState<string>('')
   const [approvalStatus, setApprovalStatus] =
@@ -94,10 +100,12 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         const ids = await getAccountIds()
         if (ids && ids.length > 0) {
           setAccountIds(ids)
+          setInitialLoadComplete(true)
         }
       } catch (error) {
         console.error('Error fetching account IDs:', error)
         toast.error('Error obteniendo las cuentas de usuario')
+        setInitialLoadComplete(true)
       }
     }
 
@@ -143,8 +151,35 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
+  // Efecto para manejar la selección de cuenta desde user-account
+  // Se ejecuta después de la carga inicial
   useEffect(() => {
-    if (accountIds.length > 0) {
+    if (initialLoadComplete && location.state && location.state.selectedCreator) {
+      setSelectedUsers([location.state.selectedCreator])
+    }
+  }, [location.state, initialLoadComplete])
+
+  // Efecto para cargar publicaciones cuando cambien los filtros
+  useEffect(() => {
+    if (accountIds.length > 0 && initialLoadComplete) {
+      // Si hay un creador seleccionado desde la navegación y los businessAccounts están ya cargados,
+      // verificamos que exista en la lista de cuentas
+      if (location.state?.selectedCreator && businessAccounts.length > 0) {
+        const creatorExists = businessAccounts.some(
+          account => account.accountName === location.state.selectedCreator
+        )
+        
+        // Si el creador no existe en las cuentas disponibles, limpiamos el filtro
+        if (!creatorExists) {
+          setSelectedUsers([])
+          
+          // Y actualizamos el estado de navegación
+          const newState = { ...location.state }
+          delete newState.selectedCreator
+          window.history.replaceState(newState, '')
+        }
+      }
+      
       setCurrentPage(1)
       loadPosts(1)
     }
@@ -155,6 +190,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     selectedUsers,
     sortConfig,
     accountIds,
+    initialLoadComplete,
   ])
 
   const handlePageChange = (newPage: number) => {
@@ -186,7 +222,16 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     }
 
     if (mediaType) params.content_format = mediaType
-    if (selectedUsers.length > 0) params.creator_accounts = selectedUsers
+    
+    // Asegurarnos de aplicar el filtro de usuarios seleccionados
+    // incluyendo el que viene por navegación si está presente
+    const effectiveSelectedUsers = selectedUsers.length > 0 
+      ? selectedUsers 
+      : (location.state?.selectedCreator ? [location.state.selectedCreator] : [])
+    
+    if (effectiveSelectedUsers.length > 0) {
+      params.creator_accounts = effectiveSelectedUsers
+    }
 
     if (approvalStatus !== 'PENDING') params.status = approvalStatus
 
@@ -289,7 +334,23 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
       }
     }
 
-    setSelectedUsers(selectedValues)
+    // Si estamos recibiendo un arreglo vacío y hay un creador seleccionado en la navegación,
+    // preservamos ese creador
+    if (selectedValues.length === 0 && location.state?.selectedCreator) {
+      setSelectedUsers([location.state.selectedCreator])
+    } else {
+      setSelectedUsers(selectedValues)
+      
+      // Si el usuario está cambiando manualmente el filtro, actualizamos el estado de navegación
+      // para mantener consistencia si se recarga la página
+      if (location.state?.selectedCreator && !selectedValues.includes(location.state.selectedCreator)) {
+        // Crear un nuevo objeto de estado sin el selectedCreator
+        const newState = { ...location.state }
+        delete newState.selectedCreator
+        // Reemplazar el estado actual de navegación
+        window.history.replaceState(newState, '')
+      }
+    }
   }
 
  /*  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -586,7 +647,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                       onClick={() => requestSort(column)}
                       className={`ml-2 p-1 rounded-full hover:bg-opacity-20 ${
                         isDarkMode 
-                          ? 'hover:bg-orange-400 text-gray-300' 
+                          ? 'bg-gray-800/40 border border-gray-700 hover:bg-gray-700/80 text-gray-300 hover:text-gray-100' 
                           : 'hover:bg-orange-500 text-gray-700'
                       } transition-colors`}
                     >

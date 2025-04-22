@@ -31,8 +31,8 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
   // Estados para la edición
   const [isEditingAdaptation, setIsEditingAdaptation] = useState<boolean>(false)
   const [isEditingCaption, setIsEditingCaption] = useState<boolean>(false)
-  const [adaptationText, setAdaptationText] = useState<string>('Versión corta enfocada en la experiencia cotidiana de programadores.')
-  const [captionText, setCaptionText] = useState<string>('Todos caminos llevan al bug 🐛 Suscríbete para más reels de comedia #desarrollador #dev #codigo #producto #comedialaboral #startup')
+  const [adaptationText, setAdaptationText] = useState<string>('')
+  const [captionText, setCaptionText] = useState<string>('')
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent): void => {
@@ -231,7 +231,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="{fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={closeModal}
         aria-hidden="true"
       />
@@ -303,10 +303,10 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
               </div>
               <div>
                 <div className="font-medium">
-                  @{creatorAccount || 'tidvio_es'}
+                  @{creatorAccount || ''}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {formatDate(publicationDate) || '16/02/2023 10:34'}
+                  {formatDate(publicationDate) || ''}
                 </div>
               </div>
             </div>
@@ -320,7 +320,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                     <div className="text-xl font-bold">
                       {typeof likes === 'number'
                         ? likes.toLocaleString()
-                        : '1352'}
+                        : ' no aplica'}
                     </div>
                     <div className="text-xs text-gray-500">Likes</div>
                   </div>
@@ -328,7 +328,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                     <div className="text-xl font-bold">
                       {typeof comments === 'number'
                         ? comments.toLocaleString()
-                        : '24'}
+                        : ' no aplica'}
                     </div>
                     <div className="text-xs text-gray-500">Comentarios</div>
                   </div>
@@ -393,7 +393,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                 >
                   <p>
                     {caption ||
-                      'Cuando piensas que has resuelto un bug pero descubres tres más 😅 La vida del programador en un minuto. Dale like si te ha pasado. #programacion #developer #bug #codigo'}
+                      'No aplica'}
                   </p>
                 </CollapsibleSection>
 

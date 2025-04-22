@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import {
-  Percent,
-  MessageCircle,
-  Image,
-  Users,
   AlertCircle,
   X,
   Loader,
   RefreshCw,
+  //Search,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import BussinessService from '../../../services/business.service'
 import businessAccountService from '../../../services/business-account.service'
 import { getBusinessAccountsByIdResponse } from '../../../services/interfaces/business-account-service'
@@ -16,20 +16,72 @@ import useReferentSearchService from '../../../services/referent-search.service'
 import { toast, Toaster } from 'react-hot-toast'
 import postService from '../../../services/post.service'
 import {
-  AccountData,
+  AccountData as BaseAccountData,
   PublicationBasicData,
 } from '../../../services/interfaces/referent-search-service'
-
 
 // Define interfaces for data structures
 interface UserData {
   id: string
 }
 
+// Extendemos la interfaz AccountData para incluir industry
+interface AccountData extends BaseAccountData {
+  industry?: string[]
+}
+
+// Componente para secciones colapsables
+const CollapsibleSection = ({
+  title,
+  children,
+  isDarkMode,
+  defaultOpen = false,
+}: {
+  title: string
+  children: React.ReactNode
+  isDarkMode: boolean
+  defaultOpen?: boolean
+}) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+
+  return (
+    <div className={`border-t ${isDarkMode ? 'border-gray-700/80 bg-transparent' : 'border-gray-200 bg-white'}`}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex w-full items-center justify-center py-3 text-sm font-medium transition-colors ${
+          isDarkMode 
+            ? `text-gray-300 hover:text-orange-400 ${isOpen ? 'bg-gray-800/40' : 'bg-gray-800/40'}` 
+            : `text-gray-700 hover:text-orange-600 ${isOpen ? 'bg-gray-50' : 'bg-gray-50'}`
+        }`}
+      >
+        {title}
+        {isOpen ? (
+          <ChevronUp className={`ml-2 h-4 w-4 transition-colors ${
+            isDarkMode ? 'text-orange-500' : 'text-orange-500'
+          }`} />
+        ) : (
+          <ChevronDown className={`ml-2 h-4 w-4 transition-colors ${
+            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+          }`} />
+        )}
+      </button>
+
+      {isOpen && (
+        <div className={`transition-all duration-200 ease-in-out ${
+          isDarkMode ? 'bg-gray-800/10' : 'bg-gray-50/60'
+        }`}>
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /**
  * AccountTable component displays a grid of account cards with various metrics
  */
 const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
+  const navigate = useNavigate()
   const [accounts, setAccounts] = useState<getBusinessAccountsByIdResponse>()
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -192,28 +244,18 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
     }
   }
 
-  /**
-   * Tooltip component for displaying additional information on hover
-   */
-  const Tooltip: React.FC<TooltipProps> = ({ children, content, isDarkMode }) => (
-    <div className="group relative">
-      {children}
-      <div className={`
-        invisible absolute bottom-full left-1/2 z-10 mb-1 
-        -translate-x-1/2 transform whitespace-nowrap rounded 
-        ${isDarkMode 
-          ? 'bg-gray-700 text-white' 
-          : 'bg-gray-800 text-white'
-        } px-2 py-1 text-xs opacity-0 transition group-hover:visible group-hover:opacity-100`}
-      >
-        {content}
-      </div>
-    </div>
-  )
+  // New function to navigate to Content Planner with account filter
+  const navigateToContentPlanner = (accountName: string) => {
+    navigate('/contentPlanner', { 
+      state: { 
+        selectedCreator: accountName 
+      } 
+    })
+  }
 
   if (loading) {
     return (
-      <div 
+      <div
         className={`flex min-h-screen items-center justify-center ${
           isDarkMode
             ? 'bg-gradient-to-r from-gray-800 to-gray-900'
@@ -221,12 +263,12 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
         }`}
       >
         <div className="space-y-4 text-center">
-          <Loader 
+          <Loader
             className={`mx-auto h-10 w-10 animate-spin ${
               isDarkMode ? 'text-gray-300' : 'text-orange-500'
-            }`} 
+            }`}
           />
-          <p 
+          <p
             className={`text-lg font-medium ${
               isDarkMode ? 'text-gray-300' : 'text-gray-600'
             }`}
@@ -240,24 +282,24 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
 
   if (error) {
     return (
-      <div 
+      <div
         className={`flex min-h-screen items-center justify-center ${
           isDarkMode
             ? 'bg-gradient-to-r from-gray-800 to-gray-900'
             : 'bg-gradient-to-r from-orange-50 to-white'
         }`}
       >
-        <div 
+        <div
           className={`space-y-4 rounded-lg p-8 text-center shadow-lg ${
             isDarkMode ? 'bg-gray-800' : 'bg-white'
           }`}
         >
-          <AlertCircle 
+          <AlertCircle
             className={`mx-auto h-12 w-12 ${
               isDarkMode ? 'text-red-400' : 'text-red-500'
-            }`} 
+            }`}
           />
-          <p 
+          <p
             className={`text-lg font-medium ${
               isDarkMode ? 'text-red-400' : 'text-red-500'
             }`}
@@ -278,7 +320,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
       }`}
     >
       <Toaster position="top-center" />
-  
+
       {/* Confirmation Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
@@ -309,140 +351,293 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
           </div>
         </div>
       )}
-  
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-8 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-center text-4xl font-bold text-transparent">
-          Directorio de referentes
-        </h1>
-  
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="mb-8">
+          <h1 className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-center text-4xl font-bold text-transparent">
+            Directorio de Referentes
+          </h1>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center rounded-lg bg-orange-100 px-3 py-1 text-orange-600 dark:bg-gray-700 dark:text-orange-400">
+                <span className="text-sm font-medium">
+                  {accounts?.accounts.length} referentes
+                </span>
+              </div>
+              <div className="flex items-center rounded-lg bg-blue-100 px-3 py-1 text-blue-600 dark:bg-gray-700 dark:text-blue-400">
+                <span className="text-sm font-medium">
+                  {accounts?.accounts.reduce(
+                    (acc, account) => acc + (account?.posts_count || 0),
+                    0
+                  )}{' '}
+                  publicaciones rastreadas por huntent
+                </span>
+              </div>
+            </div>
+
+           {/*  <div className="relative ml-auto max-w-md flex-1">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre, usuario o industria"
+                  className={`w-full rounded-lg border py-2 pl-10 pr-4 ${
+                    isDarkMode
+                      ? 'border-gray-700 bg-gray-800 text-white placeholder-gray-400'
+                      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              </div>
+            </div> */}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3" style={{ gridAutoRows: "min-content" }}>
           {accounts && accounts.accounts.length > 0 ? (
             accounts.accounts.map((account, index) => (
               <div
                 key={index}
-                className={`relative rounded-lg p-6 shadow-lg ${
-                  isDarkMode ? 'bg-gray-800' : 'bg-white'
-                } transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
+                className={`relative rounded-lg shadow-lg ${
+                  isDarkMode ? 'bg-gray-800/90 border border-gray-700' : 'bg-white'
+                } flex h-auto flex-col transform overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
+                style={{ alignSelf: "start" }}
               >
                 <button
                   onClick={() =>
                     openDeleteConfirmation(account.businessAccountId || '')
                   }
-                  className="absolute right-2 top-2 rounded-full p-1 hover:bg-red-100 dark:hover:bg-gray-700"
+                  className={`absolute right-2 top-2 z-10 rounded-full p-1 ${isDarkMode ? ' bg-gray-800/40 border border-gray-700 hover:bg-gray-700/80 text-red-400 hover:text-red-300' : 'border border-gray-200 hover:bg-red-100 text-red-500 hover:text-red-700'}`}
                   aria-label="Delete account"
                 >
-                  <X className="h-6 w-6 text-red-500 hover:text-red-700" />
+                  <X className="h-5 w-5" />
                 </button>
-  
-                {/* Contenido principal de la card */}
-                <div className="flex flex-col">
-                  {/* Sección superior: foto y datos */}
-                  <div className="flex flex-col gap-4 md:flex-row">
-                    <img
-                      src={account.profile_picture_url}
-                      alt={account.short_description || account.accountName}
-                      className="h-16 w-16 rounded-full object-cover"
-                    />
-  
-                    <div className="flex-1">
-                      <div className="mb-2 flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-semibold">
-                          {account.accountName || account.accountName}
+                <div className="mr-8 p-4">
+                  <div className={`flex items-start justify-between ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+                    <div className="flex items-start">
+                      <img
+                        src={account.profile_picture_url}
+                        alt={account.short_description || account.accountName}
+                        className="mr-3 h-12 w-12 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                      />
+                      <div>
+                        <h3 
+                          className={`text-base font-semibold cursor-pointer hover:text-orange-500 transition-colors ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}
+                          onClick={() => navigateToContentPlanner(account.accountName)}
+                        >
+                          {account.accountName}
                         </h3>
-  
-                        <div className="flex flex-wrap gap-2">
-                          <Tooltip content="Engagement" isDarkMode={isDarkMode}>
-                            <span className="flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                              <Percent className="mr-1 h-4 w-4" />
-                              {account.average_engagement
-                                ? `${(account.average_engagement * 100).toFixed(
-                                    2
-                                  )}%`
-                                : 'N/A'}
-                            </span>
-                          </Tooltip>
-  
-                          <Tooltip content="Interacciones" isDarkMode={isDarkMode}>
-                            <span className="flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300">
-                              <MessageCircle className="mr-1 h-4 w-4" />
-                              {account.average_interactions_by_publication?.toLocaleString() ||
-                                'N/A'}
-                            </span>
-                          </Tooltip>
-  
-                          <Tooltip content="Publicaciones" isDarkMode={isDarkMode}>
-                            <span className="flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-300">
-                              <Image className="mr-1 h-4 w-4" />
-                              {account.media_count?.toLocaleString() || 'N/A'}
-                            </span>
-                          </Tooltip>
-
-                          <Tooltip content="Post analizados por huntent" isDarkMode={isDarkMode}>
-                            <span className="flex items-center rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-300">
-                              <img 
-                                src="/huntent.ico" 
-                                alt="Huntent" 
-                                className="mr-1 h-4 w-4" 
-                                style={{borderRadius: '30%'}} 
-                              />
-                              {account.posts_count?.toLocaleString() || '0'}
-                            </span>
-                          </Tooltip>
-                        </div>
+                        <p
+                          className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                        >
+                          @
+                          {account.accountName.toLowerCase().replace(/\s/g, '')}
+                        </p>
                       </div>
-  
-                      <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-                        <Users className="h-5 w-5" />
-                        <span>
-                          {account.followers_count?.toLocaleString() ||
-                            'No disponible'}
+                    </div>
+
+                    <div className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <span
+                          className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                        >
+                          {account.industry
+                            ?.map((industry) => industry)
+                            .join(', ')}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-end">
+                        <span
+                          className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                        >
+                          {account.media_count || 2699}
                         </span>
                       </div>
                     </div>
                   </div>
-  
-                  {/* Sección inferior: fecha y botón */}
-                  <div className="mt-4 grid grid-cols-12 items-end">
-                    {/* Fecha - alineada con la foto (ocupa las primeras columnas) */}
-                    <div className="col-span-4 text-left text-sm text-gray-500 dark:text-gray-400">
-                      {account.updated_at && (
-                        <>
-                          Última actualización:
-                          <br />
-                          {new Date(account.updated_at).toLocaleDateString()}
-                        </>
-                      )}
-                    </div>
-  
-                    {/* Espacio para mantener la alineación */}
-                    <div className="col-span-2"></div>
-  
-                    {/* Botón alineado a la derecha */}
-                    <div className="col-span-6 flex justify-end">
-                      <button
-                        onClick={() => handleUpdateAccount(account.accountName)}
-                        disabled={updatingAccount === account.accountName}
-                        className={`flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 ${
-                          updatingAccount === account.accountName
-                            ? 'bg-gray-400 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
-                            : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-md'
-                        }`}
+                </div>
+
+                {/* Sección de Resumen de la cuenta */}
+                <CollapsibleSection
+                  title="Resumen de la cuenta"
+                  isDarkMode={isDarkMode}
+                  defaultOpen={index === 0 ? true : false}
+                >
+                  <div className="px-4 pb-3">
+                    {/* Descripción del perfil */}
+                    {account.detailed_description && (
+                      <p
+                        className={`mb-4 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
                       >
-                        {updatingAccount === account.accountName ? (
-                          <>
-                            <Loader className="mr-2 h-4 w-4 animate-spin" />
-                            Actualizando...
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                            Actualizar
-                          </>
-                        )}
-                      </button>
+                        {account.detailed_description}
+                      </p>
+                    )}
+
+                    {/* Tags o categorías mejorados */}
+                    {account.main_topics && account.main_topics.length > 0 && (
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        {account.main_topics.map((topic, i) => (
+                          <div
+                            key={i}
+                            className={`mb-2 inline-block rounded-lg px-4 py-2 text-xs font-medium ${
+                              isDarkMode
+                                ? 'border border-blue-800/50 bg-blue-900/20 text-blue-300'
+                                : 'border border-blue-100 bg-blue-50 text-blue-800'
+                            }`}
+                          >
+                            {topic}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection title="Detalles" isDarkMode={isDarkMode}>
+                  <div className="px-4 pb-3">
+                    {/* Cifras y estadísticas en línea horizontal */}
+                    <div className="mb-4 flex items-center gap-4">
+                      {/* Engagement */}
+                      <div className="flex items-center">
+                        <div
+                          className={`flex items-center justify-center rounded-full px-3 py-1 ${
+                            isDarkMode ? 'bg-gray-700/70' : 'bg-gray-100'
+                          }`}
+                        >
+                          <span
+                            className={`text-sm font-semibold ${
+                              isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                            }`}
+                          >
+                            {account.average_engagement
+                              ? `${(account.average_engagement * 100).toFixed(2)}%`
+                              : 'N/A'}
+                          </span>
+                        </div>
+                        <span className={`ml-1 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Engag.</span>
+                      </div>
+
+                      {/* Seguidores */}
+                      <div className="flex items-center">
+                        <div
+                          className={`rounded-full px-3 py-1 ${
+                            isDarkMode ? 'bg-gray-700/70' : 'bg-gray-100'
+                          }`}
+                        >
+                          <span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                            {account.followers_count?.toLocaleString() || 'N/A'}
+                          </span>
+                        </div>
+                        <span className={`ml-1 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Seguid.</span>
+                      </div>
+                    </div>
+
+                    {/* Información adicional en flex-row */}
+                    <div className="flex flex-wrap gap-2">
+                      {/* Primera fila */}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`flex items-center gap-1 ${
+                            isDarkMode ? 'text-blue-300' : 'text-blue-600'
+                          }`}
+                        >
+                          <div className="h-2 w-2 rounded-full bg-current"></div>
+                          <span
+                            className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
+                              isDarkMode
+                                ? 'bg-gray-700/70 text-gray-200'
+                                : 'bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            {account.language_region?.split(',')[1].trim()}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <div
+                            className={`h-2 w-2 rounded-full ${
+                              isDarkMode ? 'bg-gray-400' : 'bg-gray-500'
+                            }`}
+                          ></div>
+                          <span
+                            className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
+                              isDarkMode
+                                ? 'bg-gray-700/70 text-gray-200'
+                                : 'bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            {account.language_region?.split(',')[0].trim()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Segunda fila */}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`flex items-center gap-1 ${
+                            isDarkMode ? 'text-amber-300' : 'text-amber-600'
+                          }`}
+                        >
+                          <div className="h-2 w-2 rounded-full bg-current"></div>
+                          <span
+                            className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
+                              isDarkMode
+                                ? 'bg-gray-700/70 text-gray-200'
+                                : 'bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            Tono: {account.brand_tone}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                </CollapsibleSection>
+
+                <div className={`mt-auto flex border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <button
+                    onClick={() => navigateToContentPlanner(account.accountName)}
+                    className={`flex flex-1 items-center justify-center py-3 transition-colors ${
+                      isDarkMode
+                        ? 'text-gray-300 bg-gray-800/40 hover:bg-gray-700/70 hover:text-orange-400'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-orange-600'
+                    }`}
+                  >
+                    Ver publicaciones
+                  </button>
+                  <button
+                    onClick={() => handleUpdateAccount(account.accountName)}
+                    disabled={updatingAccount === account.accountName}
+                    className={`flex flex-1 items-center justify-center py-3 transition-colors ${
+                      updatingAccount === account.accountName
+                        ? isDarkMode
+                          ? 'bg-gray-700 text-gray-400'
+                          : 'bg-gray-200 text-gray-500'
+                        : isDarkMode
+                          ? 'bg-orange-600/90 text-white hover:bg-orange-500'
+                          : 'bg-orange-500 text-white hover:bg-orange-600'
+                    }`}
+                  >
+                    {updatingAccount === account.accountName ? (
+                      <>
+                        <Loader className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        Actualizando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                        Actualizar
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className={`border-t px-6 py-2 text-xs ${isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-500'}`}>
+                  Última actualización:{' '}
+                  {account.updated_at
+                    ? new Date(account.updated_at).toLocaleDateString()
+                    : 'N/A'}
                 </div>
               </div>
             ))

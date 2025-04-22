@@ -52,6 +52,15 @@ interface AccountData {
   businessAccountId?: string
   updated_at?: Date
   posts_count?: number
+  brand_tone?: string
+  content_purpose?: string[]
+  frequent_hashtags?: string[]
+  industry?: string[]
+  instagram_biography?: string
+  language_region?: string
+  main_topics?: string[]
+  posting_frequency?: string
+  target_audience?: string[]
 }
 
 interface CarouselMediaItem {

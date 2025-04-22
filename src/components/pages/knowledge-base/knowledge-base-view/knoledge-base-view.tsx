@@ -41,7 +41,7 @@ const Card: React.FC<CardProps> = ({
   return (
     <div
       className={`rounded-lg p-6 ${
-        isDarkMode ? 'bg-[#1E2129] text-gray-100' : 'bg-white text-gray-900'
+        isDarkMode ? 'bg-gray-800/90 border border-gray-700' : 'bg-white'
       } ${className}`}
     >
       {children}
@@ -265,13 +265,13 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
 
             <div className="space-y-6">
               <Card
-                className="rounded-lg bg-white p-6 shadow"
+                className={`${isDarkMode ? 'bg-gray-800/90 border border-gray-700' : 'bg-white'} transition-all duration-300 hover:-translate-y-1`}
                 isDarkMode={isDarkMode}
               >
                 <div className="mb-4 flex items-center gap-2 text-orange-500">
                   <Instagram className="h-5 w-5" />
                   <h2
-                    className={`text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}
+                    className={`text-lg font-semibold ${isDarkMode ? 'text-gray-100' : ''}`}
                   >
                     Información de la Cuenta
                   </h2>
@@ -309,7 +309,9 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
                     )}
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className={`mb-1 block text-sm font-medium ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                       Nombre de la Marca
                     </label>
                     {isEditing ? (
@@ -339,18 +341,20 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
               </Card>
 
               <Card
-                className="rounded-lg bg-white p-6 shadow"
+                className={`${isDarkMode ? 'bg-gray-800/90 border border-gray-700' : 'bg-white'} transition-all duration-300 hover:-translate-y-1`}
                 isDarkMode={isDarkMode}
               >
                 <div className="mb-4 flex items-center gap-2 text-orange-500">
                   <BookOpen className="h-5 w-5" />
-                  <h2 className="text-lg font-semibold">
+                  <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-gray-100' : ''}`}>
                     Detalles del Negocio
                   </h2>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className={`mb-1 block text-sm font-medium ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                       Productos o Servicios
                     </label>
                     {isEditing ? (
@@ -376,7 +380,9 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
                     )}
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className={`mb-1 block text-sm font-medium ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                       Diferenciadores
                     </label>
                     {isEditing ? (
@@ -402,7 +408,9 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
                     )}
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className={`mb-1 block text-sm font-medium ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                       Audiencia Objetivo
                     </label>
                     {isEditing ? (
@@ -419,10 +427,8 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
                       />
                     ) : (
                       <p
-                        className={`w-full rounded-lg px-3 py-2 focus:border-transparent focus:ring-2 ${
-                          isDarkMode
-                            ? 'border-gray-700 bg-gray-800 text-gray-100 focus:ring-orange-700'
-                            : 'border-gray-300 focus:ring-orange-500'
+                        className={`${
+                          isDarkMode ? 'text-gray-100' : 'text-gray-900'
                         }`}
                       >
                         {formData.audiencia || '-'}
@@ -432,12 +438,12 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
                 </div>
               </Card>
               <Card
-                className="rounded-lg bg-white p-6 shadow"
+               className={`${isDarkMode ? 'bg-gray-800/90 border border-gray-700' : 'bg-white'} transition-all duration-300 hover:-translate-y-1`}
                 isDarkMode={isDarkMode}
               >
                 <div className="mb-4 flex items-center gap-2 text-orange-500">
                   <Target className="h-5 w-5" />
-                  <h2 className="text-lg font-semibold">Objetivos</h2>
+                  <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-gray-100' : ''}`}>Objetivos</h2>
                 </div>
                 {isEditing ? (
                   <div className="grid grid-cols-2 gap-4">
@@ -456,12 +462,18 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
                         }}
                         className={`flex items-center gap-4 rounded-lg p-4 transition-all ${
                           formData.objetivos.includes(objetivo.id)
-                            ? 'border border-orange-500 bg-orange-50'
-                            : 'border border-transparent bg-white hover:border-gray-200'
+                            ? isDarkMode 
+                              ? 'border border-orange-500 bg-gray-800' 
+                              : 'border border-orange-500 bg-orange-50'
+                            : isDarkMode
+                              ? 'border border-transparent bg-gray-800 hover:border-gray-700'
+                              : 'border border-transparent bg-white hover:border-gray-200'
                         }`}
                       >
                         <div className="text-3xl">{objetivo.icono}</div>
-                        <div className="text-sm font-medium text-gray-700">
+                        <div className={`text-sm font-medium ${
+                          isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
                           {objetivo.texto}
                         </div>
                       </button>
@@ -473,13 +485,17 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
                       formData.objetivos.map((objetivoId, index) => (
                         <span
                           key={index}
-                          className="rounded-full bg-orange-100 px-3 py-1 text-sm text-orange-700"
+                          className={`rounded-full px-3 py-1 text-sm ${
+                            isDarkMode 
+                              ? 'bg-orange-900/30 text-orange-300' 
+                              : 'bg-orange-100 text-orange-700'
+                          }`}
                         >
                           {getObjetivoTexto(objetivoId)}
                         </span>
                       ))
                     ) : (
-                      <p className="text-gray-500">
+                      <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                         No hay objetivos seleccionados
                       </p>
                     )}

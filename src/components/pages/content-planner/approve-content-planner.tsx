@@ -63,12 +63,17 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   const columnNames = {
     contentFormat: 'Formato',
     creatorAccount: 'Autor',
+    publicationDate: 'Fecha y hora',
+    topics: 'Temas',
+    objective: 'Objetivo',
+    description: 'Descripción',
+    transcript: 'Transcripción',
+    scriptAdaptation: 'Adaptación del guión',
     likes: 'Me gusta',
     comments: 'Comentarios',
     totalInteractions: 'Interacciones Totales',
     postEngagement: 'Engagement',
     outliers: 'Outliers',
-    publicationDate: 'Fecha de Publicación',
   }
 
   
@@ -424,18 +429,18 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                 <div
                   className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}`}
                 >
-                  Vista Previa
+                  Previsualización
                 </div>
               </th>
               {[
+                'publicationDate',
                 'contentFormat',
                 'creatorAccount',
-                'likes',
-                'comments',
-                'totalInteractions',
-                'postEngagement',
-                'outliers',
-                'publicationDate',
+                'topics',
+                'objective',
+                'description',
+                'transcript',
+                'scriptAdaptation',
               ].map((column) => (
                 <th
                   key={column}
@@ -466,7 +471,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                       onClick={() => requestSort(column)}
                       className={`ml-2 p-1 rounded-full hover:bg-opacity-20 ${
                         isDarkMode 
-                          ? 'hover:bg-orange-400 text-gray-300' 
+                          ? 'bg-gray-800/40 border border-gray-700 hover:bg-gray-700/80 text-gray-300 hover:text-gray-100' 
                           : 'hover:bg-orange-500 text-gray-700'
                       } transition-colors`}
                     >
@@ -549,32 +554,37 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                     )}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
+                    {post.publicationDate ? new Date(post.publicationDate).toLocaleString('es-ES', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false,
+                    }) : ''}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">
                     {post.contentFormat}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     {post.creatorAccount}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {(post.likes ? post.likes.toLocaleString() : 0)}
+                    {post.topics || 'No aplica'}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {(post.comments ? post.comments.toLocaleString() : 0)}
+                    <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                      {post.objective || 'No aplica'}
+                    </span>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {(post.totalInteractions ? post.totalInteractions.toLocaleString() : 0)}
+                    {'No aplica'}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {post.postEngagement
-                      ? `${(post.postEngagement * 100).toFixed(2)}%`
-                      : 'N/A'}
+                    {post.videoTranscript ? 'Sin transcripción' : 'Sin transcripción'}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {post.outliers
-                      ? `${parseFloat(post.outliers).toFixed(2)}X`
-                      : ''}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {post.publicationDate ? new Date(post.publicationDate).toLocaleDateString() : ''}
+                    {post.scriptAdaptation || 'No aplica'}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center space-x-2">
@@ -606,7 +616,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={9} className={`px-4 py-4 text-center ${
+                <td colSpan={10} className={`px-4 py-4 text-center ${
                     isDarkMode 
                       ? 'text-gray-400 bg-gray-900' 
                       : 'text-gray-500 bg-white'

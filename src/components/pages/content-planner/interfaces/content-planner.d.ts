@@ -32,6 +32,8 @@ export interface Post {
   cta?: string
   averageEngagement?: number
   carousel_items?: string[]
+  objective?: string
+  scriptAdaptation?: string
   // Add any other properties your posts have
 }
 

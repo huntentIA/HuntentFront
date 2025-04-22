@@ -309,14 +309,14 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
                 <div>
                   <h3 className="mb-2 text-sm text-gray-600">Descripción</h3>
                   <div className="min-h-[80px] rounded-lg bg-gray-100 p-3">
-                    {description}
+                    {description || 'No hay descripción.'}
                   </div>
                 </div>
 
                 <div>
                   <h3 className="mb-2 text-sm text-gray-600">Hashtags</h3>
                   <div className="max-h-[120px] min-h-[40px] overflow-y-auto rounded-lg bg-gray-100 p-3">
-                    {hashtags}
+                    {hashtags || 'No hay hashtags.'}
                   </div>
                 </div>
 
@@ -325,7 +325,7 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
                     Fecha y hora de publicación
                   </h3>
                   <div className="min-h-[40px] rounded-lg bg-gray-100 p-3">
-                    {formatDate(publicationDate)}
+                    {formatDate(publicationDate) || 'No hay fecha y hora de publicación.'}
                   </div>
                 </div>
 
@@ -333,13 +333,13 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
                   <div>
                     <h3 className="mb-2 text-sm text-gray-600">Gancho</h3>
                     <div className="min-h-[40px] rounded-lg bg-gray-100 p-3">
-                      {rights}
+                      {rights || 'No hay gancho.'}
                     </div>
                   </div>
                   <div>
                     <h3 className="mb-2 text-sm text-gray-600">CTA</h3>
                     <div className="min-h-[40px] rounded-lg bg-gray-100 p-3">
-                      {cta}
+                      {cta || 'No hay CTA.'}
                     </div>
                   </div>
                 </div>
@@ -349,7 +349,7 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
                     Temas de los que habla
                   </h3>
                   <div className="min-h-[60px] rounded-lg bg-gray-100 p-3">
-                    {topics}
+                    {topics || 'No hay temas.'}
                   </div>
                 </div>
               </div>
