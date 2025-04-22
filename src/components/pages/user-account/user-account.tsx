@@ -550,7 +550,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                                 : 'bg-gray-100 text-gray-700'
                             }`}
                           >
-                            {account.language_region?.split(',')[1].trim() || 'N/A'}
+                            {account.language_region? account.language_region.split(',')[1].trim() : 'N/A'}
                           </span>
                         </div>
 
@@ -567,7 +567,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                                 : 'bg-gray-100 text-gray-700'
                             }`}
                           >
-                            {account.language_region?.split(',')[0].trim() || 'N/A'}
+                            {account.language_region? account.language_region.split(',')[0].trim() : 'N/A'}
                           </span>
                         </div>
                       </div>
