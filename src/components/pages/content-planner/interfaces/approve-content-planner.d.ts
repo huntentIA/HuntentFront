@@ -1,3 +1,5 @@
+import { PainOrDesire } from "../../../../services/interfaces/business-post-service"
+
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 export type ContentFormat = 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM'
 export type SortDirection = 'asc' | 'desc'
@@ -34,18 +36,16 @@ export interface Post {
   carousel_items?: string[]
   objective?: string
   scriptAdaptation?: string
-  content_objectives?: string[]
-  content_topics?: string[]
-  businessPostStatus?: string
+  businessPostId?: string
   content_adapter?: string
+  content_topics?: string[]
+  content_objectives?: string[]
+  downloadable_type?: boolean
   global_content_analysis?: string
   hook?: string
-  pain_or_desire?: PainOrDesire
   narrative_structure?: string
-  downloadable_type?: boolean
-  brand_tone_business?: string
-  target_audience_business?: string
-  businessPostId?: string
+  pain_or_desire?: PainOrDesire[]
+  businessPostStatus?: string
   // Add any other properties your posts have
 }
 
@@ -54,18 +54,18 @@ export interface SortConfig {
   direction: SortDirection
 }
 
-export interface PostQueryParams {
+export interface PostBusinessQueryParams {
   limit?: string
   page_number?: string
   page_token?: string
   prev_token?: string
   is_prev_page?: boolean
-  account_ids?: string[]
+  businessId?: string
   content_format?: string
   status?: ApprovalStatus
   creator_accounts?: string[]
+  account_ids?: string[]
   next_token?: string
-  prev_token?: string
   sort_by?: string
   page?: number
   sort_order?: SortDirection

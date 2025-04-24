@@ -15,6 +15,8 @@ interface FormData {
   whatTheBusinessSells: string;
   valueProposition: string;
   targetAudience: string;
+  brandTone: string;
+  allowControversialTopics: boolean;
   objective: number[];
 }
 
@@ -24,6 +26,8 @@ interface BusinessKnowledgeRequest {
   whatTheBusinessSells: string;
   valueProposition: string;
   targetAudience: string;
+  brandTone: string;
+  allowControversialTopics: boolean;
   objective: number[];
   userIDs: string[];
 }
@@ -50,6 +54,19 @@ const objetivos: Objetivo[] = [
   { id: 6, texto: "Mostrar productos/servicios", icono: "🛍️" }
 ];
 
+const tonos = [
+  { id: "Inspirador", descripcion: "Emocional, motivador, busca elevar y conectar." },
+  { id: "Académico", descripcion: "Preciso, estructurado, orientado a datos o teoría." },
+  { id: "Casual/Amigable", descripcion: "Cercano, relajado, como hablar con un amigo." },
+  { id: "Corporativo", descripcion: "Formal, técnico, enfocado en profesionalismo." },
+  { id: "Controversial", descripcion: "Provocador, desafía lo establecido, rompe creencias." },
+  { id: "Divertido/Entretenido", descripcion: "Alegre, usa humor o recursos virales." },
+  { id: "Directo y Práctico", descripcion: "Claro, sin rodeos, con consejos aplicables." },
+  { id: "Vulnerable/Auténtico", descripcion: "Humano, muestra errores, emociones o reflexiones personales." },
+  { id: "Ambicioso/Competitivo", descripcion: "Se enfoca en éxito, metas, rendimiento o liderazgo." },
+  { id: "Espiritual/Reflexivo", descripcion: "Tono profundo, conectado con propósito, valores o conciencia." }
+];
+
 const KnowledgeBaseForm: React.FC = () => {
   const [paso, setPaso] = useState<number>(1);
   const [formData, setFormData] = useState<FormData>({
@@ -58,15 +75,17 @@ const KnowledgeBaseForm: React.FC = () => {
     whatTheBusinessSells: '',
     valueProposition: '',
     targetAudience: '',
+    brandTone: '',
+    allowControversialTopics: false,
     objective: []
   });
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const totalPasos: number = 6;
+  const totalPasos: number = 8;
 
-  const actualizarFormData = (campo: keyof FormData, valor: string | number[]): void => {
+  const actualizarFormData = (campo: keyof FormData, valor: string | number[] | boolean): void => {
     setFormData(prev => ({
       ...prev,
       [campo]: valor
@@ -118,6 +137,16 @@ const KnowledgeBaseForm: React.FC = () => {
         }
         break;
       case 6:
+        if (!formData.brandTone) {
+          setError('Por favor, selecciona un tono de marca');
+          return false;
+        }
+        break;
+      case 7:
+        // No hay validación para allowControversialTopics ya que es un toggle
+        // y siempre tiene un valor (true o false)
+        break;
+      case 8:
         if (formData.objective.length === 0) {
           setError('Por favor, selecciona al menos un objetivo');
           return false;
@@ -244,6 +273,63 @@ const KnowledgeBaseForm: React.FC = () => {
           </div>
         );
       case 6:
+        return (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-gray-800">¿Cuál es el tono de comunicación de tu marca?</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {tonos.map(tono => (
+                <button
+                  key={tono.id}
+                  onClick={() => actualizarFormData('brandTone', tono.id)}
+                  className={`p-4 rounded-lg border transition-all text-left ${
+                    formData.brandTone === tono.id
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-200 hover:border-orange-300'
+                  }`}
+                >
+                  <div className="font-medium mb-1">{tono.id}</div>
+                  <div className="text-sm text-gray-600">{tono.descripcion}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      case 7:
+        return (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-gray-800">¿Tu marca aborda temas polémicos o controversiales?</h3>
+            <p className="text-gray-600 mb-6">Esto nos ayudará a entender mejor qué tipo de contenido es apropiado para tu audiencia.</p>
+            
+            <div className="flex items-center justify-center space-x-10">
+              <button
+                onClick={() => actualizarFormData('allowControversialTopics', true)}
+                className={`flex flex-col items-center p-4 rounded-lg border transition-all ${
+                  formData.allowControversialTopics
+                    ? 'border-orange-500 bg-orange-50'
+                    : 'border-gray-200 hover:border-orange-300'
+                }`}
+              >
+                <div className="text-2xl mb-2">✅</div>
+                <div className="font-medium">Sí</div>
+                <div className="text-sm text-gray-600 text-center mt-1">Mi marca aborda temas polémicos</div>
+              </button>
+              
+              <button
+                onClick={() => actualizarFormData('allowControversialTopics', false)}
+                className={`flex flex-col items-center p-4 rounded-lg border transition-all ${
+                  !formData.allowControversialTopics
+                    ? 'border-orange-500 bg-orange-50'
+                    : 'border-gray-200 hover:border-orange-300'
+                }`}
+              >
+                <div className="text-2xl mb-2">❌</div>
+                <div className="font-medium">No</div>
+                <div className="text-sm text-gray-600 text-center mt-1">Mi marca evita temas polémicos</div>
+              </button>
+            </div>
+          </div>
+        );
+      case 8:
         return (
           <div className="space-y-4">
             <h3 className="font-semibold text-gray-800">¿Qué quieres lograr con la publicación de contenido?</h3>

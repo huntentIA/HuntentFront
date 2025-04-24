@@ -8,6 +8,8 @@ export type BusinessesAccountResponse = {
   valueProposition?: string
   whatTheBusinessSells?: string
   productBenefits?: string
+  brandTone?: string
+  allowControversialTopics?: boolean
 }[]
 
 
@@ -21,6 +23,8 @@ export interface BusinessUpdateData {
   valueProposition: string
   whatTheBusinessSells: string
   productBenefits: string
+  brandTone: string
+  allowControversialTopics: boolean
 }
 
 export interface BusinessUpdateResponse {
@@ -40,6 +44,7 @@ export interface updatedAttributes {
   valueProposition: string;
   objective: string;
   whatTheBusinessSells: string;
-  productBenefits: string
+  productBenefits: string;
+  allowControversialTopics: boolean;
 }
 

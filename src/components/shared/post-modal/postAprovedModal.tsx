@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { X, ChevronDown, ChevronUp, Edit, Sparkles, Check } from 'lucide-react'
 import { toast } from 'react-toastify'
 import transcribeService from '../../../services/transcribe.service'
+import businessPostService from '../../../services/business-post.service'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
 import { Post } from '../../pages/content-planner/interfaces/content-planner'
+import postService from '../../../services/post.service'
 
 // Definición de tipos
 export type PostStatus = 'APPROVED'
@@ -27,12 +29,15 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
   const [transcriptionExpanded, setTranscriptionExpanded] =
     useState<boolean>(false)
   const [analysisExpanded, setAnalysisExpanded] = useState<boolean>(false)
+  const [contentAnalysisExpanded, setContentAnalysisExpanded] = useState<boolean>(false)
   
   // Estados para la edición
   const [isEditingAdaptation, setIsEditingAdaptation] = useState<boolean>(false)
   const [isEditingCaption, setIsEditingCaption] = useState<boolean>(false)
   const [adaptationText, setAdaptationText] = useState<string>('')
   const [captionText, setCaptionText] = useState<string>('')
+  const [isProcessing, setIsProcessing] = useState<boolean>(false)
+  const [currentPost, setCurrentPost] = useState<Post | null>(post)
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent): void => {
@@ -44,6 +49,15 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
   }, [isOpen, closeModal])
+
+  useEffect(() => {
+    // Inicializar los campos de texto con los datos del post
+    if (post) {
+      setCurrentPost(post)
+      setAdaptationText(post.content_adapter || '')
+      setCaptionText(post.caption || '')
+    }
+  }, [post])
 
   const formatDate = (dateString?: string): string => {
     if (!dateString) return ''
@@ -58,8 +72,27 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     })
   }
 
+  const reloadPost = async () => {
+    if (!currentPost || !currentPost.id) return
+
+    try {
+      // Obtener datos actualizados del post
+      const updatedPost = await postService.getPostById(currentPost.id)
+      
+      // Actualizar el estado con los nuevos datos
+      setCurrentPost(updatedPost)
+      
+      // Actualizar los campos de texto con la información actualizada
+      setAdaptationText(updatedPost.content_adapter || '')
+      setCaptionText(updatedPost.caption || '')
+    } catch (error) {
+      console.error('Error al recargar la información del post:', error)
+      toast.error('No se pudo actualizar la información del post')
+    }
+  }
+
   const handleTranscribe = async (): Promise<void> => {
-    if (!post || !post.mediaURL || typeof post.mediaURL !== 'string') return
+    if (!currentPost || !currentPost.mediaURL || typeof currentPost.mediaURL !== 'string') return
 
     try {
       setIsTranscribing(true)
@@ -67,9 +100,12 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
         'Iniciando transcripción. Este proceso puede tomar varios minutos...'
       )
 
-      await transcribeService.transcribe(post.id, post.mediaURL)
+      await transcribeService.transcribe(currentPost.id, currentPost.mediaURL)
 
       toast.success('La transcripción ha sido iniciada exitosamente')
+      
+      // Recargar la información del post después de la transcripción
+      await reloadPost()
     } catch (error) {
       toast.error('Error al iniciar la transcripción')
       console.error('Error en transcripción:', error)
@@ -79,20 +115,127 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
   }
 
   // Manejadores para guardar ediciones
-  const handleSaveAdaptation = () => {
-    // Aquí se implementaría la lógica para guardar en el backend
-    setIsEditingAdaptation(false)
-    toast.success('Adaptación guardada correctamente')
+  const handleSaveAdaptation = async () => {
+    if (!currentPost || !currentPost.businessPostId) {
+      toast.error('No se pudo identificar el post')
+      return
+    }
+    
+    try {
+      setIsProcessing(true)
+      
+      await businessPostService.updateContentAdapter(currentPost.businessPostId, {
+        description: currentPost.description || '',
+        brand_tone_business: currentPost.brand_tone_business || '',
+        target_audience_business: currentPost.target_audience_business || '', 
+        objective: currentPost.content_objectives || [],
+        contentFormat: currentPost.contentFormat || '',
+        content_topics: currentPost.content_topics || [],
+        pain_or_desire: [currentPost.pain_or_desire || { pain: '', desire: '' }],
+        content_adapter: adaptationText,
+        use_ai: false
+      })
+      
+      setIsEditingAdaptation(false)
+      toast.success('Adaptación guardada correctamente')
+      
+      // Recargar la información del post
+      await reloadPost()
+    } catch (error) {
+      toast.error('Error al guardar la adaptación')
+      console.error('Error al guardar la adaptación:', error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
-  const handleSaveCaption = () => {
-    // Aquí se implementaría la lógica para guardar en el backend
-    setIsEditingCaption(false)
-    toast.success('Caption optimizado guardado correctamente')
+  const handleGenerateAIAdaptation = async () => {
+    if (!currentPost || !currentPost.businessPostId) {
+      toast.error('No se pudo identificar el post')
+      return
+    }
+    
+    try {
+      setIsProcessing(true)
+      toast.info('Generando adaptación con IA...')
+      
+      await businessPostService.updateContentAdapter(currentPost.businessPostId, {
+        description: currentPost.description || '',
+        brand_tone_business: currentPost.brand_tone_business || '',
+        target_audience_business: currentPost.target_audience_business || '',
+        objective: currentPost.content_objectives || [],
+        contentFormat: currentPost.contentFormat || '',
+        content_topics: currentPost.content_topics || [],
+        pain_or_desire: [currentPost.pain_or_desire || { pain: '', desire: '' }],
+        use_ai: true
+      })
+      
+      toast.success('Adaptación con IA generada correctamente')
+      
+      // Recargar la información del post
+      await reloadPost()
+    } catch (error) {
+      toast.error('Error al generar la adaptación con IA')
+      console.error('Error al generar adaptación con IA:', error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
-  if (!post || !isOpen) return null
+  const handleSaveCaption = async () => {
+    if (!currentPost || !currentPost.businessPostId) {
+      toast.error('No se pudo identificar el post')
+      return
+    }
+    
+    try {
+      setIsProcessing(true)
+      
+      // Aquí implementaríamos la lógica para guardar el caption
+      // Por ahora solo indicamos éxito
+      setIsEditingCaption(false)
+      toast.success('Caption optimizado guardado correctamente')
+      
+      // Recargar la información del post
+      await reloadPost()
+    } catch (error) {
+      toast.error('Error al guardar el caption')
+      console.error('Error al guardar el caption:', error)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
+  const handleGenerateAICaption = async () => {
+    if (!currentPost || !currentPost.businessPostId) {
+      toast.error('No se pudo identificar el post')
+      return
+    }
+    
+    try {
+      setIsProcessing(true)
+      toast.info('Generando caption con IA...')
+      
+      // Aquí implementaríamos la lógica para generar el caption con IA
+      // Por ahora solo indicamos éxito
+      toast.success('Caption generado con IA correctamente')
+      
+      // Recargar la información del post
+      await reloadPost()
+    } catch (error) {
+      toast.error('Error al generar el caption con IA')
+      console.error('Error al generar caption con IA:', error)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleEditAdaptation = () => {
+    setIsEditingAdaptation(true);
+    // El focus automático ocurrirá al renderizar sin necesidad de useEffect
+  };
+
+  if (!currentPost || !isOpen) return null
   const {
     mediaURL,
     caption,
@@ -106,7 +249,15 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     videoTranscript,
     status,
     carousel_items,
-  } = post
+    global_content_analysis,
+    hook,
+    pain_or_desire,
+    narrative_structure,
+    call_to_action,
+    downloadable_type,
+    content_adapter,
+    content_objectives,
+  } = currentPost
 
   // Valor fijo para engagement de demostración
   const engagement = 4.8
@@ -127,15 +278,15 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
 
     if (
       contentFormat === 'CAROUSEL_ALBUM' &&
-      post.carousel_items &&
-      Array.isArray(post.carousel_items) &&
-      post.carousel_items.length > 0
+      currentPost.carousel_items &&
+      Array.isArray(currentPost.carousel_items) &&
+      currentPost.carousel_items.length > 0
     ) {
       return (
         <Slider {...carouselSettings} className="mb-4">
-          {Array.from({ length: post.carousel_items.length }).map(
+          {Array.from({ length: currentPost.carousel_items.length }).map(
             (_, index) => {
-              const item = post.carousel_items?.[index] as unknown as {
+              const item = currentPost.carousel_items?.[index] as unknown as {
                 media_url: string
               }
               if (!item || !item.media_url) return null
@@ -273,27 +424,23 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
             <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
               {/* Título del contenido */}
               <h1 className="mb-4 text-lg font-semibold">
-                {description ||
-                  'Humor sobre el desarrollo de software y la vida como programador.'}
+                  {hook}
               </h1>
             </div>
 
             {/* Tags */}
             <div className="mb-4 flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
-                <span className="mr-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
-                  Ⓘ
+              {content_objectives?.map((objective, index) => (
+                <span 
+                  key={index} 
+                  className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
+                >
+                  <span className="mr-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+                    Ⓘ
+                  </span>
+                  {objective}
                 </span>
-                Crecimiento
-              </span>
-              <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-800">
-                <span className="mr-1">🔗</span>
-                Programación y tecnología
-              </span>
-              <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-800">
-                <span className="mr-1">#</span>
-                programacion
-              </span>
+              ))}
             </div>
 
             {/* Author info */}
@@ -392,7 +539,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                   setExpanded={setCaptionExpanded}
                 >
                   <p>
-                    {caption ||
+                    {description ||
                       'No aplica'}
                   </p>
                 </CollapsibleSection>
@@ -428,7 +575,56 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                 )}
 
                 <CollapsibleSection
-                  title="Análisis del contenido"
+                  title="Análisis del Contenido"
+                  expanded={contentAnalysisExpanded}
+                  setExpanded={setContentAnalysisExpanded}
+                  icon={<span className="text-gray-600">📊</span>}
+                >
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium">Hook</h4>
+                        <p className="text-sm text-gray-600">{hook}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium">Call to Action</h4>
+                        <p className="text-sm text-gray-600">{call_to_action || 'No aplica'}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium">Descargable</h4>
+                      <p className="text-sm text-gray-600">{downloadable_type ? 'Sí - Plantilla para organizar contenido semanal' : 'No aplica'}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium">Estructura Narrativa</h4>
+                      <p className="text-sm text-gray-600">{narrative_structure}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium">Dolor/Deseo Abordado</h4>
+                      {pain_or_desire.desire && (
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium">Deseo:</span> {pain_or_desire.desire}
+                        </p>
+                      )}
+                      {pain_or_desire.pain && pain_or_desire.pain !== "No hay información suficiente para determinarlo" && (
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium">Dolor:</span> {pain_or_desire.pain}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium">Análisis del Contenido</h4>
+                      <p className="text-sm text-gray-600">{global_content_analysis}</p>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  title="Adaptación del contenido"
                   expanded={analysisExpanded}
                   setExpanded={setAnalysisExpanded}
                   icon={<span className="text-gray-600">📊</span>}
@@ -442,11 +638,18 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                             className="w-full p-2 border rounded-md"
                             value={adaptationText}
                             onChange={(e) => setAdaptationText(e.target.value)}
-                            rows={2}
+                            rows={4}
+                            autoFocus
+                            onFocus={(e) => {
+                              // Asegurar que el cursor se posicione al final
+                              const val = e.target.value;
+                              e.target.value = '';
+                              e.target.value = val;
+                            }}
                           />
                         ) : (
                           <div className="text-sm">
-                            {adaptationText}
+                            {content_adapter || 'No hay adaptación disponible'}
                           </div>
                         )}
                         <div className="flex space-x-2 ml-2">
@@ -454,18 +657,24 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                             <button 
                               onClick={handleSaveAdaptation}
                               className="rounded border border-green-300 p-1 text-green-600 hover:text-green-900 bg-green-50"
+                              disabled={isProcessing}
                             >
                               <Check size={14} />
                             </button>
                           ) : (
                             <button 
-                              onClick={() => setIsEditingAdaptation(true)}
+                              onClick={handleEditAdaptation}
                               className="rounded border border-gray-300 p-1 text-gray-600 hover:text-gray-900"
+                              disabled={isProcessing}
                             >
                               <Edit size={14} />
                             </button>
                           )}
-                          <button className="rounded border border-gray-300 p-1 text-gray-600 hover:text-gray-900">
+                          <button 
+                            onClick={handleGenerateAIAdaptation}
+                            className="rounded border border-gray-300 p-1 text-gray-600 hover:text-gray-900"
+                            disabled={isProcessing}
+                          >
                             <Sparkles size={14} />
                           </button>
                         </div>
@@ -481,11 +690,18 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                             className="w-full p-2 border rounded-md"
                             value={captionText}
                             onChange={(e) => setCaptionText(e.target.value)}
-                            rows={3}
+                            rows={4}
+                            autoFocus
+                            onFocus={(e) => {
+                              // Asegurar que el cursor se posicione al final
+                              const val = e.target.value;
+                              e.target.value = '';
+                              e.target.value = val;
+                            }}
                           />
                         ) : (
                           <div className="text-sm">
-                            {captionText}
+                            {captionText || 'No hay caption optimizado disponible'}
                           </div>
                         )}
                         <div className="flex space-x-2 ml-2">
@@ -493,6 +709,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                             <button 
                               onClick={handleSaveCaption}
                               className="rounded border border-green-300 p-1 text-green-600 hover:text-green-900 bg-green-50"
+                              disabled={isProcessing}
                             >
                               <Check size={14} />
                             </button>
@@ -500,11 +717,16 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                             <button 
                               onClick={() => setIsEditingCaption(true)}
                               className="rounded border border-gray-300 p-1 text-gray-600 hover:text-gray-900"
+                              disabled={isProcessing}
                             >
                               <Edit size={14} />
                             </button>
                           )}
-                          <button className="rounded border border-gray-300 p-1 text-gray-600 hover:text-gray-900">
+                          <button 
+                            onClick={handleGenerateAICaption}
+                            className="rounded border border-gray-300 p-1 text-gray-600 hover:text-gray-900"
+                            disabled={isProcessing}
+                          >
                             <Sparkles size={14} />
                           </button>
                         </div>

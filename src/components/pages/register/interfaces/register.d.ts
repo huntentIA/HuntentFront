@@ -15,6 +15,13 @@ export interface RegisterResponse {
 export interface BusinessRegisterRequest {
   businessName: string
   userIDs: string[]
+  instagramAccount?: string
+  objective?: number[]
+  targetAudience?: string
+  valueProposition?: string
+  whatTheBusinessSells?: string
+  brandTone?: string
+  allowControversialTopics?: boolean
 }
 
 export interface BusinessRegisterResponse {

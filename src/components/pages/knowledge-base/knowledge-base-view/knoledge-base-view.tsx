@@ -10,6 +10,8 @@ interface FormData {
   productos: string
   diferenciadores: string
   audiencia: string
+  tonoMarca: string
+  temasControversiales: boolean
   objetivos: number[]
 }
 
@@ -31,6 +33,20 @@ const objetivos = [
   { id: 4, texto: 'Convertirme en influenciador', icono: '⭐' },
   { id: 5, texto: 'Generar comunidad', icono: '👥' },
   { id: 6, texto: 'Mostrar productos/servicios', icono: '🛍️' },
+]
+
+// Define tonos array to match KnowledgeBaseForm
+const tonos = [
+  { id: 'Inspirador', descripcion: 'Emocional, motivador, busca elevar y conectar.' },
+  { id: 'Académico', descripcion: 'Preciso, estructurado, orientado a datos o teoría.' },
+  { id: 'Casual/Amigable', descripcion: 'Cercano, relajado, como hablar con un amigo.' },
+  { id: 'Corporativo', descripcion: 'Formal, técnico, enfocado en profesionalismo.' },
+  { id: 'Controversial', descripcion: 'Provocador, desafía lo establecido, rompe creencias.' },
+  { id: 'Divertido/Entretenido', descripcion: 'Alegre, usa humor o recursos virales.' },
+  { id: 'Directo y Práctico', descripcion: 'Claro, sin rodeos, con consejos aplicables.' },
+  { id: 'Vulnerable/Auténtico', descripcion: 'Humano, muestra errores, emociones o reflexiones personales.' },
+  { id: 'Ambicioso/Competitivo', descripcion: 'Se enfoca en éxito, metas, rendimiento o liderazgo.' },
+  { id: 'Espiritual/Reflexivo', descripcion: 'Tono profundo, conectado con propósito, valores o conciencia.' },
 ]
 
 const Card: React.FC<CardProps> = ({
@@ -59,6 +75,8 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
     productos: '',
     diferenciadores: '',
     audiencia: '',
+    tonoMarca: '',
+    temasControversiales: false,
     objetivos: [],
   })
   const [loading, setLoading] = useState<boolean>(true)
@@ -118,6 +136,8 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
           productos: businessData[0].whatTheBusinessSells || '',
           diferenciadores: businessData[0].valueProposition || '',
           audiencia: businessData[0].targetAudience || '',
+          tonoMarca: businessData[0].brandTone || '',
+          temasControversiales: businessData[0].allowControversialTopics || false,
           objetivos: parsedObjectives,
         })
       }
@@ -130,7 +150,7 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
 
   const actualizarCampo = (
     campo: keyof FormData,
-    valor: string | number[]
+    valor: string | number[] | boolean
   ): void => {
     setFormData((prev) => ({
       ...prev,
@@ -163,10 +183,12 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
           businessName: formData.marca,
           userIDs: businessData[0].userIDs,
           instagramAccount: formData.instagram,
-          objective: formattedObjectives, // Use the formatted objectives
+          objective: formattedObjectives,
           targetAudience: formData.audiencia,
           valueProposition: formData.diferenciadores,
           whatTheBusinessSells: formData.productos,
+          brandTone: formData.tonoMarca,
+          allowControversialTopics: formData.temasControversiales,
           productBenefits: businessData[0].productBenefits || '',
         }
 
@@ -182,10 +204,15 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
   }
 
   // Function to get the objective text by id
-
   const getObjetivoTexto = (id: number): string => {
     const objetivo = objetivos.find((obj) => obj.id === id)
     return objetivo ? objetivo.texto : ''
+  }
+
+  // Añadir esta función para obtener la descripción del tono por su ID
+  const getTonoDescripcion = (id: string): string => {
+    const tono = tonos.find((tono) => tono.id === id)
+    return tono ? tono.descripcion : ''
   }
 
   if (loading) {
@@ -433,6 +460,106 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
                       >
                         {formData.audiencia || '-'}
                       </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className={`mb-1 block text-sm font-medium ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      Tono de Marca
+                    </label>
+                    {isEditing ? (
+                      <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
+                        {tonos.map((tono) => (
+                          <button
+                            key={tono.id}
+                            onClick={() => actualizarCampo('tonoMarca', tono.id)}
+                            className={`flex flex-col items-start p-3 rounded-lg transition-all text-left ${
+                              formData.tonoMarca === tono.id
+                                ? isDarkMode
+                                  ? 'border border-orange-500 bg-gray-800'
+                                  : 'border border-orange-500 bg-orange-50'
+                                : isDarkMode
+                                  ? 'border border-gray-700 bg-gray-800 hover:border-orange-700'
+                                  : 'border border-gray-200 hover:border-orange-300'
+                            }`}
+                          >
+                            <div className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                              {tono.id}
+                            </div>
+                            <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              {tono.descripcion}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      formData.tonoMarca ? (
+                        <div>
+                          <p className={`font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                            {formData.tonoMarca}
+                          </p>
+                          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {getTonoDescripcion(formData.tonoMarca)}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>-</p>
+                      )
+                    )}
+                  </div>
+                  <div>
+                    <label className={`mb-1 block text-sm font-medium ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      Temas Controversiales
+                    </label>
+                    {isEditing ? (
+                      <div className="flex justify-center gap-4 mt-2">
+                        <button
+                          onClick={() => actualizarCampo('temasControversiales', true)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
+                            formData.temasControversiales
+                              ? isDarkMode
+                                ? 'border-orange-500 bg-gray-800/80'
+                                : 'border-orange-500 bg-orange-50'
+                              : isDarkMode
+                                ? 'border-gray-700 bg-gray-800'
+                                : 'border-gray-200'
+                          }`}
+                        >
+                          <span className="text-xl">✅</span>
+                          <span className={isDarkMode ? 'text-gray-200' : ''}>Sí</span>
+                        </button>
+                        <button
+                          onClick={() => actualizarCampo('temasControversiales', false)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
+                            !formData.temasControversiales
+                              ? isDarkMode
+                                ? 'border-orange-500 bg-gray-800/80'
+                                : 'border-orange-500 bg-orange-50'
+                              : isDarkMode
+                                ? 'border-gray-700 bg-gray-800'
+                                : 'border-gray-200'
+                          }`}
+                        >
+                          <span className="text-xl">❌</span>
+                          <span className={isDarkMode ? 'text-gray-200' : ''}>No</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className='flex justify-center'>
+                        <p className={`flex items-center gap-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                          <span className="text-xl">
+                            {formData.temasControversiales ? '✅' : '❌'}
+                          </span>
+                          <span>
+                            {formData.temasControversiales 
+                              ? 'La marca aborda temas controversiales' 
+                              : 'La marca evita temas controversiales'}
+                          </span>
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>

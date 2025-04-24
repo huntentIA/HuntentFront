@@ -19,6 +19,16 @@ interface PostModalProps {
 
 const PostModal: React.FC<PostModalProps> = ({ post, closeModal, isOpen }) => {
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false)
+  const [isTranscriptionRequired, setIsTranscriptionRequired] = useState<boolean>(false)
+
+  useEffect(() => {
+    // Verificar si se requiere transcripción
+    if (post && post.contentFormat === 'VIDEO' && !post.videoTranscript) {
+      setIsTranscriptionRequired(true)
+    } else {
+      setIsTranscriptionRequired(false)
+    }
+  }, [post])
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent): void => {
@@ -92,6 +102,9 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
       await transcribeService.transcribe(post.id, post.mediaURL)
 
       toast.success('La transcripción ha sido iniciada exitosamente')
+      // Actualizar el estado para que no se requiera transcripción después de iniciarla
+      // Nota: esto es optimista, ya que en realidad habría que esperar la respuesta completa
+      setIsTranscriptionRequired(false)
     } catch (error) {
       toast.error('Error al iniciar la transcripción')
       console.error('Error en transcripción:', error)
@@ -115,7 +128,7 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
     hashtags,
     topics,
     rights,
-    cta,
+    call_to_action,
     status,
     videoTranscript,
     carousel_items,
@@ -339,7 +352,7 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
                   <div>
                     <h3 className="mb-2 text-sm text-gray-600">CTA</h3>
                     <div className="min-h-[40px] rounded-lg bg-gray-100 p-3">
-                      {cta || 'No hay CTA.'}
+                      {call_to_action || 'No hay CTA.'}
                     </div>
                   </div>
                 </div>
@@ -384,11 +397,18 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
               <button
                 onClick={() => handleApproval(post, 'APPROVED')}
                 className="rounded-lg bg-green-500 px-6 py-2 text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={status === 'APPROVED'}
+                disabled={status === 'APPROVED' || isTranscriptionRequired}
               >
                 APROBAR
               </button>
             </div>
+            )}
+            
+            {/* Mostrar mensaje si se requiere transcripción */}
+            {isTranscriptionRequired && (
+              <div className="ml-4 text-sm text-orange-500">
+                Es necesario transcribir el video antes de aprobar.
+              </div>
             )}
           </div>
         </div>

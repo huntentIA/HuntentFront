@@ -24,6 +24,8 @@ import BussinessService from '../../../services/business.service'
 import { getBusinessAccountsByIdResponse } from '../../../services/interfaces/business-account-service'
 import CustomMultiSelect from '../../shared/multiselect/multiselect'
 import { tooltipDescriptions } from '../../../utils/toolDescriptions'
+import { BusinessPostDataCreate } from '../../../services/interfaces/business-post-service'
+import BusinessPostService from '../../../services/business-post.service'
 
 interface UserData {
   id: string
@@ -53,6 +55,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
 
   // States for data and pagination
   const [posts, setPosts] = useState<Post[]>([])
+  const [businessId, setBusinessId] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
@@ -133,6 +136,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
       }
 
       const businessId = businessResponse[0].id
+      setBusinessId(businessId)
       const data: getBusinessAccountsByIdResponse =
         await businessAccountService.getAccountByBusinessId(businessId)
 
@@ -162,7 +166,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   // Efecto para cargar publicaciones cuando cambien los filtros
   useEffect(() => {
     if (accountIds.length > 0 && initialLoadComplete) {
-      // Si hay un creador seleccionado desde la navegación y los businessAccounts están ya cargados,
       // verificamos que exista en la lista de cuentas
       if (location.state?.selectedCreator && businessAccounts.length > 0) {
         const creatorExists = businessAccounts.some(
@@ -273,13 +276,32 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
-  const handleApproval = async (postId: string, status: string) => {
+  const handleApproval = async (postId: string, status: string, publicationDate: Date) => {
     setLoading(true)
     try {
+      // Si está aprobando un video, verificar primero si tiene transcripción
+      if (status === 'approved') {
+        // Buscar el post actual en la lista de posts
+        const currentPost = posts.find(post => post.id === postId)
+        
+        // Verificar si es un video sin transcripción
+        if (currentPost && currentPost.contentFormat === 'VIDEO' && !currentPost.videoTranscript) {
+          toast.warning('Es necesario transcribir el video antes de aprobarlo.');
+          setLoading(false);
+          return;
+        }
+      }
+      
       const newStatus = status === 'approved' ? 'APPROVED' : 'REJECTED'
+      const businessPostData: BusinessPostDataCreate = {
+        postId: postId,
+        businessId: businessId,
+        publicationDate: publicationDate,
+        status: newStatus,
+      }
 
-      const success = await postService.updatePostStatus(postId, newStatus)
-
+      //const success = await postService.updatePostStatus(postId, newStatus)
+      const success = await BusinessPostService.createBusinessPost(businessPostData)
       if (success) {
         toast.success(
           `El post ha sido ${status === 'approved' ? 'aprobado' : 'rechazado'}.`
@@ -771,7 +793,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                       </button>
                       {post.status !== 'APPROVED' && (
                         <button
-                          onClick={() => handleApproval(post.id, 'approved')}
+                          onClick={() => handleApproval(post.id, 'approved', new Date(post.publicationDate))}
                           className={`rounded-md p-2 ${
                             isDarkMode
                               ? 'bg-green-600 hover:bg-green-700'
@@ -783,7 +805,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                       )}
                       {post.status !== 'REJECTED' && (
                         <button
-                          onClick={() => handleApproval(post.id, 'rejected')}
+                          onClick={() => handleApproval(post.id, 'rejected', new Date(post.publicationDate))}
                           className={`rounded-md p-2 ${
                             isDarkMode
                               ? 'bg-red-600 hover:bg-red-700'

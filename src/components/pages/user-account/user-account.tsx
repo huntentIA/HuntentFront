@@ -7,6 +7,10 @@ import {
   //Search,
   ChevronUp,
   ChevronDown,
+  Percent,
+  MessageCircle,
+  Image,
+  Users,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import BussinessService from '../../../services/business.service'
@@ -45,31 +49,39 @@ const CollapsibleSection = ({
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <div className={`border-t ${isDarkMode ? 'border-gray-700/80 bg-transparent' : 'border-gray-200 bg-white'}`}>
+    <div
+      className={`border-t ${isDarkMode ? 'border-gray-700/80 bg-transparent' : 'border-gray-200 bg-white'}`}
+    >
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`flex w-full items-center justify-center py-3 text-sm font-medium transition-colors ${
-          isDarkMode 
-            ? `text-gray-300 hover:text-orange-400 ${isOpen ? 'bg-gray-800/40' : 'bg-gray-800/40'}` 
+          isDarkMode
+            ? `text-gray-300 hover:text-orange-400 ${isOpen ? 'bg-gray-800/40' : 'bg-gray-800/40'}`
             : `text-gray-700 hover:text-orange-600 ${isOpen ? 'bg-gray-50' : 'bg-gray-50'}`
         }`}
       >
         {title}
         {isOpen ? (
-          <ChevronUp className={`ml-2 h-4 w-4 transition-colors ${
-            isDarkMode ? 'text-orange-500' : 'text-orange-500'
-          }`} />
+          <ChevronUp
+            className={`ml-2 h-4 w-4 transition-colors ${
+              isDarkMode ? 'text-orange-500' : 'text-orange-500'
+            }`}
+          />
         ) : (
-          <ChevronDown className={`ml-2 h-4 w-4 transition-colors ${
-            isDarkMode ? 'text-gray-400' : 'text-gray-500'
-          }`} />
+          <ChevronDown
+            className={`ml-2 h-4 w-4 transition-colors ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}
+          />
         )}
       </button>
 
       {isOpen && (
-        <div className={`transition-all duration-200 ease-in-out ${
-          isDarkMode ? 'bg-gray-800/10' : 'bg-gray-50/60'
-        }`}>
+        <div
+          className={`transition-all duration-200 ease-in-out ${
+            isDarkMode ? 'bg-gray-800/10' : 'bg-gray-50/60'
+          }`}
+        >
           {children}
         </div>
       )}
@@ -246,12 +258,29 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
 
   // New function to navigate to Content Planner with account filter
   const navigateToContentPlanner = (accountName: string) => {
-    navigate('/contentPlanner', { 
-      state: { 
-        selectedCreator: accountName 
-      } 
+    navigate('/contentPlanner', {
+      state: {
+        selectedCreator: accountName,
+      },
     })
   }
+
+  const Tooltip: React.FC<TooltipProps> = ({
+    children,
+    content,
+    isDarkMode,
+  }) => (
+    <div className="group relative">
+      {children}
+      <div
+        className={`invisible absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 transform whitespace-nowrap rounded ${
+          isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-800 text-white'
+        } px-2 py-1 text-xs opacity-0 transition group-hover:visible group-hover:opacity-100`}
+      >
+        {content}
+      </div>
+    </div>
+  )
 
   if (loading) {
     return (
@@ -363,7 +392,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
             <div className="flex items-center gap-4">
               <div className="flex items-center rounded-lg bg-orange-100 px-3 py-1 text-orange-600 dark:bg-gray-700 dark:text-orange-400">
                 <span className="text-sm font-medium">
-                  {accounts?.accounts.length || 0}  referentes 
+                  {accounts?.accounts.length || 0} referentes
                 </span>
               </div>
               <div className="flex items-center rounded-lg bg-blue-100 px-3 py-1 text-blue-600 dark:bg-gray-700 dark:text-blue-400">
@@ -377,7 +406,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
               </div>
             </div>
 
-           {/*  <div className="relative ml-auto max-w-md flex-1">
+            {/*  <div className="relative ml-auto max-w-md flex-1">
               <div className="relative">
                 <input
                   type="text"
@@ -394,37 +423,46 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3" style={{ gridAutoRows: "min-content" }}>
+        <div
+          className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3"
+          style={{ gridAutoRows: 'min-content' }}
+        >
           {accounts && accounts.accounts.length > 0 ? (
             accounts.accounts.map((account, index) => (
               <div
                 key={index}
                 className={`relative rounded-lg shadow-lg ${
-                  isDarkMode ? 'bg-gray-800/90 border border-gray-700' : 'bg-white'
-                } flex h-auto flex-col transform overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
-                style={{ alignSelf: "start" }}
+                  isDarkMode
+                    ? 'border border-gray-700 bg-gray-800/90'
+                    : 'bg-white'
+                } flex h-auto transform flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
+                style={{ alignSelf: 'start' }}
               >
                 <button
                   onClick={() =>
                     openDeleteConfirmation(account.businessAccountId || '')
                   }
-                  className={`absolute right-2 top-2 z-10 rounded-full p-1 ${isDarkMode ? ' bg-gray-800/40 border border-gray-700 hover:bg-gray-700/80 text-red-400 hover:text-red-300' : 'border border-gray-200 hover:bg-red-100 text-red-500 hover:text-red-700'}`}
+                  className={`absolute right-2 top-2 z-10 rounded-full p-1 ${isDarkMode ? 'border border-gray-700 bg-gray-800/40 text-red-400 hover:bg-gray-700/80 hover:text-red-300' : 'border border-gray-200 text-red-500 hover:bg-red-100 hover:text-red-700'}`}
                   aria-label="Delete account"
                 >
                   <X className="h-5 w-5" />
                 </button>
                 <div className="mr-8 p-4">
-                  <div className={`flex items-start justify-between ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+                  <div
+                    className={`flex items-start justify-between ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}
+                  >
                     <div className="flex items-start">
                       <img
                         src={account.profile_picture_url}
                         alt={account.short_description || account.accountName}
-                        className="mr-3 h-12 w-12 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                        className="mr-3 h-12 w-12 rounded-full border border-gray-200 object-cover dark:border-gray-700"
                       />
                       <div>
-                        <h3 
-                          className={`text-base font-semibold cursor-pointer hover:text-orange-500 transition-colors ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}
-                          onClick={() => navigateToContentPlanner(account.accountName)}
+                        <h3
+                          className={`cursor-pointer text-base font-semibold transition-colors hover:text-orange-500 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}
+                          onClick={() =>
+                            navigateToContentPlanner(account.accountName)
+                          }
                         >
                           {account.accountName || 'N/A'}
                         </h3>
@@ -432,30 +470,71 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                           className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
                         >
                           @
-                          {account.accountName.toLowerCase().replace(/\s/g, '') || 'N/A'}
+                          {account.accountName
+                            .toLowerCase()
+                            .replace(/\s/g, '') || 'N/A'}
                         </p>
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-2">
                         <span
-                          className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                          className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} flex items-center`}
                         >
-                          {account.industry
-                            ?.map((industry) => industry)
-                            .join(', ') || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-end">
-                        <span
-                          className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
-                        >
-                          {account.media_count || 0}
+                          <span className="mr-1 font-bold">Industria:</span>
+                          <span className="rounded-md bg-blue-100 bg-opacity-20 px-2 py-1 dark:bg-blue-900 dark:bg-opacity-20">
+                            {account.industry
+                              ?.map((industry) => industry)
+                              .join(', ') || 'N/A'}
+                          </span>
                         </span>
                       </div>
                     </div>
                   </div>
+                </div>
+                <div className="flex items-center justify-center gap-2 pb-4">
+                  <Tooltip content="Engagement" isDarkMode={isDarkMode}>
+                    <span className="flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                      <Percent className="mr-1 h-4 w-4" />
+                      {account.average_engagement
+                        ? `${(account.average_engagement * 100).toFixed(2)}%`
+                        : 'N/A'}
+                    </span>
+                  </Tooltip>
+                  <Tooltip content="Interacciones" isDarkMode={isDarkMode}>
+                    <span className="flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300">
+                      <MessageCircle className="mr-1 h-4 w-4" />
+                      {account.average_interactions_by_publication?.toLocaleString() ||
+                        'N/A'}
+                    </span>
+                  </Tooltip>
+                  <Tooltip content="Publicaciones" isDarkMode={isDarkMode}>
+                    <span className="flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+                      <Image className="mr-1 h-4 w-4" />
+                      {account.media_count?.toLocaleString() || 'N/A'}
+                    </span>
+                  </Tooltip>
+                  <Tooltip content="Seguidores" isDarkMode={isDarkMode}>
+                    <span className="flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-300">
+                      <Users className="mr-1 h-4 w-4" />
+                      {account.followers_count?.toLocaleString() || 'N/A'}
+                    </span>
+                  </Tooltip>
+                  <Tooltip
+                    content="Post analizados por huntent"
+                    isDarkMode={isDarkMode}
+                  >
+                    <span className="flex items-center rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-300">
+                      <img
+                        src="/huntent.ico"
+                        alt="Huntent"
+                        className="mr-1 h-4 w-4"
+                        style={{ borderRadius: '30%' }}
+                      />
+                      {account.posts_count?.toLocaleString() || '0'}
+                    </span>
+                  </Tooltip>
                 </div>
 
                 {/* Sección de Resumen de la cuenta */}
@@ -464,8 +543,13 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                   isDarkMode={isDarkMode}
                   defaultOpen={index === 0 ? true : false}
                 >
+                  {/* Sección de descripción */}
                   <div className="px-4 pb-3">
-                    {/* Descripción del perfil */}
+                    <h4
+                      className={`mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
+                    >
+                      Descripción
+                    </h4>
                     {account.detailed_description && (
                       <p
                         className={`mb-4 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
@@ -473,9 +557,16 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                         {account.detailed_description || 'N/A'}
                       </p>
                     )}
+                  </div>
 
-                    {/* Tags o categorías mejorados */}
-                    {account.main_topics && account.main_topics.length > 0 && (
+                  {/* Sección de temas principales */}
+                  <div className="px-4 pb-3">
+                    <h4
+                      className={`mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
+                    >
+                      Temas principales
+                    </h4>
+                    {account.main_topics && account.main_topics.length > 0 ? (
                       <div className="mb-2 flex flex-wrap gap-2">
                         {account.main_topics.map((topic, i) => (
                           <div
@@ -490,52 +581,24 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                           </div>
                         ))}
                       </div>
+                    ) : (
+                      <p
+                        className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                      >
+                        No hay temas definidos
+                      </p>
                     )}
                   </div>
-                </CollapsibleSection>
 
-                <CollapsibleSection title="Detalles" isDarkMode={isDarkMode}>
+                  {/* Sección combinada: Región, Idioma, Tono e Industria */}
                   <div className="px-4 pb-3">
-                    {/* Cifras y estadísticas en línea horizontal */}
-                    <div className="mb-4 flex items-center gap-4">
-                      {/* Engagement */}
-                      <div className="flex items-center">
-                        <div
-                          className={`flex items-center justify-center rounded-full px-3 py-1 ${
-                            isDarkMode ? 'bg-gray-700/70' : 'bg-gray-100'
-                          }`}
-                        >
-                          <span
-                            className={`text-sm font-semibold ${
-                              isDarkMode ? 'text-blue-300' : 'text-blue-700'
-                            }`}
-                          >
-                            {account.average_engagement
-                              ? `${(account.average_engagement * 100).toFixed(2)}%`
-                              : 'N/A'}
-                          </span>
-                        </div>
-                        <span className={`ml-1 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Engag.</span>
-                      </div>
-
-                      {/* Seguidores */}
-                      <div className="flex items-center">
-                        <div
-                          className={`rounded-full px-3 py-1 ${
-                            isDarkMode ? 'bg-gray-700/70' : 'bg-gray-100'
-                          }`}
-                        >
-                          <span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                            {account.followers_count?.toLocaleString() || 'N/A'}
-                          </span>
-                        </div>
-                        <span className={`ml-1 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Seguid.</span>
-                      </div>
-                    </div>
-
-                    {/* Información adicional en flex-row */}
-                    <div className="flex flex-wrap gap-2">
-                      {/* Primera fila */}
+                    <h4
+                      className={`mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
+                    >
+                      Información de la cuenta
+                    </h4>
+                    <div className="mb-2 flex flex-wrap gap-1">
+                      {/* Región */}
                       <div className="flex items-center gap-2">
                         <div
                           className={`flex items-center gap-1 ${
@@ -550,57 +613,83 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                                 : 'bg-gray-100 text-gray-700'
                             }`}
                           >
-                            {account.language_region? account.language_region.split(',')[1].trim() : 'N/A'}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <div
-                            className={`h-2 w-2 rounded-full ${
-                              isDarkMode ? 'bg-gray-400' : 'bg-gray-500'
-                            }`}
-                          ></div>
-                          <span
-                            className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
-                              isDarkMode
-                                ? 'bg-gray-700/70 text-gray-200'
-                                : 'bg-gray-100 text-gray-700'
-                            }`}
-                          >
-                            {account.language_region? account.language_region.split(',')[0].trim() : 'N/A'}
+                            {account.language_region
+                              ? account.language_region.split(',')[1].trim()
+                              : 'N/A'}
                           </span>
                         </div>
                       </div>
 
-                      {/* Segunda fila */}
-                      <div className="flex items-center gap-2">
+                      {/* Idioma */}
+                      <div className="flex items-center gap-1">
                         <div
-                          className={`flex items-center gap-1 ${
-                            isDarkMode ? 'text-amber-300' : 'text-amber-600'
+                          className={`h-2 w-2 rounded-full ${
+                            isDarkMode ? 'bg-gray-400' : 'bg-gray-500'
+                          }`}
+                        ></div>
+                        <span
+                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
+                            isDarkMode
+                              ? 'bg-gray-700/70 text-gray-200'
+                              : 'bg-gray-100 text-gray-700'
                           }`}
                         >
-                          <div className="h-2 w-2 rounded-full bg-current"></div>
-                          <span
-                            className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
-                              isDarkMode
-                                ? 'bg-gray-700/70 text-gray-200'
-                                : 'bg-gray-100 text-gray-700'
-                            }`}
-                          >
-                            Tono: {account.brand_tone}
-                          </span>
-                        </div>
+                          {account.language_region
+                            ? account.language_region.split(',')[0].trim()
+                            : 'N/A'}
+                        </span>
+                      </div>
+
+                      {/* Tono */}
+                      <div
+                        className={`flex items-center gap-1 ${
+                          isDarkMode ? 'text-amber-300' : 'text-amber-600'
+                        }`}
+                      >
+                        <div className="h-2 w-2 rounded-full bg-current"></div>
+                        <span
+                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
+                            isDarkMode
+                              ? 'bg-gray-700/70 text-gray-200'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          Tono: {account.brand_tone || 'N/A'}
+                        </span>
+                      </div>
+
+                      {/* Industria */}
+                      <div className="flex items-center gap-1">
+                        <div
+                          className={`h-2 w-2 rounded-full ${
+                            isDarkMode ? 'bg-green-400' : 'bg-green-500'
+                          }`}
+                        ></div>
+                        <span
+                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
+                            isDarkMode
+                              ? 'bg-gray-700/70 text-gray-200'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {account.industry
+                            ?.map((industry) => industry)
+                            .join(', ') || 'N/A'}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </CollapsibleSection>
-
-                <div className={`mt-auto flex border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div
+                  className={`mt-auto flex border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}
+                >
                   <button
-                    onClick={() => navigateToContentPlanner(account.accountName)}
+                    onClick={() =>
+                      navigateToContentPlanner(account.accountName)
+                    }
                     className={`flex flex-1 items-center justify-center py-3 transition-colors ${
                       isDarkMode
-                        ? 'text-gray-300 bg-gray-800/40 hover:bg-gray-700/70 hover:text-orange-400'
+                        ? 'bg-gray-800/40 text-gray-300 hover:bg-gray-700/70 hover:text-orange-400'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-orange-600'
                     }`}
                   >
@@ -633,7 +722,9 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                   </button>
                 </div>
 
-                <div className={`border-t px-6 py-2 text-xs ${isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-500'}`}>
+                <div
+                  className={`border-t px-6 py-2 text-xs ${isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-500'}`}
+                >
                   Última actualización:{' '}
                   {account.updated_at
                     ? new Date(account.updated_at).toLocaleDateString()

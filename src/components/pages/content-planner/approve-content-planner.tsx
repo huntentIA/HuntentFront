@@ -1,27 +1,30 @@
 import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   ChevronDown,
   ChevronUp,
-  Check,
   Eye,
   Video,
   Info,
   Download,
+  BarChart2,
 } from 'lucide-react'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import {
   Post,
-  PostQueryParams,
   SortConfig,
-} from './interfaces/content-planner'
+  PostBusinessQueryParams,
+} from './interfaces/approve-content-planner'
 import PostAprovedModal from '../../shared/post-modal/postAprovedModal'
-import postService from '../../../services/post.service'
+import businessPostService from '../../../services/business-post.service'
+import { ContentAnalysisData } from '../../../services/interfaces/business-post-service'
 import businessAccountService from '../../../services/business-account.service'
 import BussinessService from '../../../services/business.service'
 import { getBusinessAccountsByIdResponse } from '../../../services/interfaces/business-account-service'
 import CustomMultiSelect from '../../shared/multiselect/multiselect'
 import { tooltipDescriptions } from '../../../utils/toolDescriptions'
+import { BusinessesAccountResponse } from '../../../services/interfaces/business-service'
 interface UserData {
   id: string
   // Otros campos de usuario
@@ -34,6 +37,10 @@ interface ContentPlannerProps {
 export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   isDarkMode,
 }) => {
+  // Obtener datos de navegación (si proviene de user-account)
+  const location = useLocation()
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  
   // States for filters and configuration
   const [mediaType, setMediaType] = useState<string>('')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
@@ -44,6 +51,8 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
 
   // States for data and pagination
   const [posts, setPosts] = useState<Post[]>([])
+  const [businessId, setBusinessId] = useState<string>('')
+  const [business, setBusiness] = useState<BusinessesAccountResponse | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
@@ -59,6 +68,9 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   const [loadingNextPage, setLoadingNextPage] = useState<boolean>(false)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [businessAccounts, setBusinessAccounts] = useState<any[]>([])
+  // Nuevos estados para almacenar opciones de filtro basadas en datos reales
+  const [availableCreators, setAvailableCreators] = useState<{ id: string, accountName: string }[]>([])
+  const [analysisLoading, setAnalysisLoading] = useState<{[key: string]: boolean}>({})
 
   const columnNames = {
     contentFormat: 'Formato',
@@ -84,10 +96,12 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
         const ids = await getAccountIds()
         if (ids && ids.length > 0) {
           setAccountIds(ids)
+          setInitialLoadComplete(true)
         }
       } catch (error) {
         console.error('Error fetching account IDs:', error)
         toast.error('Error obteniendo las cuentas de usuario')
+        setInitialLoadComplete(true)
       }
     }
 
@@ -115,6 +129,8 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       }
 
       const businessId = businessResponse[0].id
+      setBusinessId(businessId)
+      setBusiness(businessResponse)
       const data: getBusinessAccountsByIdResponse =
         await businessAccountService.getAccountByBusinessId(businessId)
 
@@ -133,8 +149,33 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
+  // Efecto para manejar la selección de cuenta desde user-account
+  // Se ejecuta después de la carga inicial
   useEffect(() => {
-    if (accountIds.length > 0) {
+    if (initialLoadComplete && location.state && location.state.selectedCreator) {
+      setSelectedUsers([location.state.selectedCreator])
+    }
+  }, [location.state, initialLoadComplete])
+
+  useEffect(() => {
+    if (accountIds.length > 0 && businessId && initialLoadComplete) {
+      // Verificamos que exista en la lista de cuentas
+      if (location.state?.selectedCreator && businessAccounts.length > 0) {
+        const creatorExists = businessAccounts.some(
+          account => account.accountName === location.state.selectedCreator
+        )
+        
+        // Si el creador no existe en las cuentas disponibles, limpiamos el filtro
+        if (!creatorExists) {
+          setSelectedUsers([])
+          
+          // Y actualizamos el estado de navegación
+          const newState = { ...location.state }
+          delete newState.selectedCreator
+          window.history.replaceState(newState, '')
+        }
+      }
+      
       setCurrentPage(1)
       loadPosts(1)
     }
@@ -144,6 +185,8 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     selectedUsers,
     sortConfig,
     accountIds,
+    businessId,
+    initialLoadComplete
   ])
 
   const handlePageChange = (newPage: number) => {
@@ -158,10 +201,10 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   }
 
   const buildQueryParams = (page = currentPage) => {
-    const params: PostQueryParams = {
+    const params: PostBusinessQueryParams = {
       limit: postsPerPage.toString(),
       page_number: page.toString(),
-      account_ids: accountIds,
+      businessId: businessId,
       status: 'APPROVED',
       sort_by: sortConfig.key,
       sort_order: sortConfig.direction,
@@ -176,26 +219,96 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     }
 
     if (mediaType) params.content_format = mediaType
-    if (selectedUsers.length > 0) params.creator_accounts = selectedUsers
+    
+    // Asegurarnos de aplicar el filtro de usuarios seleccionados
+    // incluyendo el que viene por navegación si está presente
+    const effectiveSelectedUsers = selectedUsers.length > 0 
+      ? selectedUsers 
+      : (location.state?.selectedCreator ? [location.state.selectedCreator] : [])
+    
+    if (effectiveSelectedUsers.length > 0 && !effectiveSelectedUsers.includes('')) {
+      // Buscar los IDs de cuenta correspondientes a los nombres de cuenta seleccionados
+      const accountIdsToFilter: string[] = [];
+      
+      effectiveSelectedUsers.forEach(selectedUser => {
+        // Intentar encontrar la cuenta por nombre o por ID
+        const matchingAccount = availableCreators.find(
+          acc => acc.accountName === selectedUser || acc.id === selectedUser
+        );
+        
+        if (matchingAccount && matchingAccount.id) {
+          accountIdsToFilter.push(matchingAccount.id);
+        } else {
+          // Si no se encuentra una coincidencia exacta, usar el valor seleccionado directamente
+          accountIdsToFilter.push(selectedUser);
+        }
+      });
+      
+      if (accountIdsToFilter.length > 0) {
+        params.account_ids = accountIdsToFilter;
+      }
+    }
 
     return params
   }
 
   const loadPosts = async (page: number = currentPage) => {
-    if (loading) return
+    if (loading || !businessId) return
 
     try {
       setLoading(true)
       setError(null)
 
       const params = buildQueryParams(page)
-      const response = await postService.getPosts(params)
+      const response = await businessPostService.getBusinessPost(params)
+      console.log(response)
 
       if (!response.items) {
         throw new Error('No items returned from API')
       }
 
-      setPosts(response.items)
+      // Convertimos los elementos BusinessPostData a tipo Post
+      const transformedPosts = response.items.map(item => {
+        // Suponemos que el objeto de respuesta de BusinessPost tiene información relacionada
+        // que podemos mapear a los campos de Post
+        return {
+          id: item.postId || '',
+          accountID: item.accountId || '', 
+          status: item.status || 'APPROVED',
+          mediaURL: item.mediaURL || '', 
+          publicationDate: item.publicationDate ? new Date(item.publicationDate).toISOString() : '',
+          publicationTime: item.publicationDate ? new Date(item.publicationDate).toTimeString() : '',
+          likes: item.likes || 0, 
+          comments: item.comments || 0, 
+          shares: item.shares || 0, 
+          saves: item.saves || 0, 
+          totalInteractions: item.totalInteractions || 0, 
+          postEngagement: item.postEngagement || 0, 
+          hashtags: item.hashtags || [], 
+          postURL: item.postURL || '', 
+          contentFormat: item.contentFormat || 'IMAGE', 
+          creatorAccount: item.creatorAccount || '', 
+          description: item.description || '', 
+          outliers: item.outliers || '', 
+          carousel_items: item.carousel_items || [],
+          businessPostId: item.businessPostId || '',
+          content_adapter: item.content_adapter || '',
+          content_objectives: item.content_objectives || [],
+          content_topics: item.content_topics || [],
+          downloadable_type: item.downloadable_type || false,
+          global_content_analysis: item.global_content_analysis || '',
+          hook: item.hook || '',
+          narrative_structure: item.narrative_structure || '',
+          pain_or_desire: item.pain_or_desire || '',
+          video_transcription: item.video_transcription || '',
+          businessPostStatus: item.businessPostStatus || '',
+          call_to_action: item.call_to_action || '',
+          brand_tone_business: business?.[0]?.brandTone || '',
+          target_audience_business: business?.[0]?.targetAudience || '',
+        } as Post;
+      });
+
+      setPosts(transformedPosts);
       setTotalItems(response.total_items || 0)
       setTotalPages(response.total_pages || 1)
       setCurrentPage(response.page_number || 1)
@@ -203,6 +316,29 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       setNextPageToken(response.next_page_token)
       setPrevPageToken(response.prev_page_token)
       setCurrentToken(response.current_token)
+
+      // Extraer los creadores disponibles de los posts
+      const creators = transformedPosts.reduce((acc: { id: string, accountName: string }[], post) => {
+        if (post.accountID && post.creatorAccount && !acc.some(c => c.id === post.accountID)) {
+          acc.push({ id: post.accountID, accountName: post.creatorAccount });
+        }
+        return acc;
+      }, []);
+      
+      if (creators.length > 0) {
+        setAvailableCreators(prevCreators => {
+          const combinedCreators = [...prevCreators];
+          creators.forEach(creator => {
+            if (!combinedCreators.some(c => c.id === creator.id)) {
+              combinedCreators.push(creator);
+            }
+          });
+          return combinedCreators;
+        });
+      }
+
+      // Extraer los tipos de contenido disponibles
+      
     } catch (error) {
       console.error('Error loading posts:', error)
       setError('Error loading posts. Please try again.')
@@ -213,35 +349,6 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       setLoading(false)
       setLoadingPrevPage(false)
       setLoadingNextPage(false)
-    }
-  }
-
-  const handleApproval = async (postId: string, status: string) => {
-    setLoading(true)
-    try {
-      const newStatus = status === 'approved' ? 'APPROVED' : 'REJECTED'
-
-      const success = await postService.updatePostStatus(postId, newStatus)
-
-      if (success) {
-        toast.success(
-          `El post ha sido ${status === 'approved' ? 'aprobado' : 'rechazado'}.`
-        )
-      } else {
-        toast.error(
-          `No se pudo ${status === 'approved' ? 'aprobar' : 'rechazar'} el post.`
-        )
-      }
-    } catch (error) {
-      console.error(
-        `Error al ${status === 'approved' ? 'aprobar' : 'rechazar'} el post:`,
-        error
-      )
-      toast.error(
-        `Error al ${status === 'approved' ? 'aprobar' : 'rechazar'} el post.`
-      )
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -271,7 +378,23 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       }
     }
 
-    setSelectedUsers(selectedValues)
+    // Si estamos recibiendo un arreglo vacío y hay un creador seleccionado en la navegación,
+    // preservamos ese creador
+    if (selectedValues.length === 0 && location.state?.selectedCreator) {
+      setSelectedUsers([location.state.selectedCreator])
+    } else {
+      setSelectedUsers(selectedValues)
+      
+      // Si el usuario está cambiando manualmente el filtro, actualizamos el estado de navegación
+      // para mantener consistencia si se recarga la página
+      if (location.state?.selectedCreator && !selectedValues.includes(location.state.selectedCreator)) {
+        // Crear un nuevo objeto de estado sin el selectedCreator
+        const newState = { ...location.state }
+        delete newState.selectedCreator
+        // Reemplazar el estado actual de navegación
+        window.history.replaceState(newState, '')
+      }
+    }
   }
 
   const requestSort = (key: string) => {
@@ -315,7 +438,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   const handleGenerateExcel = async () => {
     try {
       setLoading(true)
-      const blob = await postService.generateExcelReport(accountIds)
+      const blob = await businessPostService.generateExcelReport(businessId)
       
       // Crear URL del blob
       const url = window.URL.createObjectURL(blob)
@@ -340,6 +463,78 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
+  // Modificamos la lógica para llenar el componente de filtrado con nombres de cuenta
+  const getBusinessAccountsForMultiselect = () => {
+    if (availableCreators.length > 0) {
+      // Transformar la estructura para que el multiselect existente pueda usarla
+      return availableCreators.map(creator => ({
+        id: creator.id,
+        accountName: creator.accountName || creator.id
+      }));
+    } else {
+      return businessAccounts.map(account => ({
+        id: account.id || account.accountName,
+        accountName: account.accountName || account.id
+      }));
+    }
+  };
+
+  const handleContentAnalysis = async (post: Post) => {
+    try {
+      setAnalysisLoading(prev => ({ ...prev, [post.id]: true }))
+      
+      // Intentamos obtener la información de la cuenta asociada
+      let accountInfo = null;
+      try {
+        if (post.accountID && businessId) {
+          console.log('entra')
+          const accountData = await businessAccountService.getAccountByBusinessIdAndAccountId(
+            businessId,
+            post.accountID
+          );
+          console.log(accountData.accounts[0])
+          if (accountData && accountData.accounts && accountData.accounts.length > 0) {
+            accountInfo = accountData.accounts[0];
+          }
+        }
+      } catch (error) {
+        console.error('Error al obtener información de la cuenta:', error);
+      }
+      
+      // Preparamos los datos para el análisis
+      const analysisData: ContentAnalysisData = {
+        brand_tone: accountInfo?.brand_tone || "",
+        target_audience: accountInfo?.target_audience?.join(', ') || "",
+        outliers: post.outliers ? Number(post.outliers) : null,
+        brand_tone_business: business?.[0]?.brandTone || "",
+        objective: business?.[0]?.objective?.join(', ') || "",
+        contentFormat: post.contentFormat || "IMAGE",
+        likes: post.likes || 0,
+        comments: post.comments || 0,
+        total_interactions: post.totalInteractions || 0,
+        description: post.description || ""
+      }
+
+      if(post.contentFormat === "VIDEO"){
+        analysisData.video_transcription = post.videoTranscript || ""
+      }else {
+        analysisData.target_audience_business = business?.[0]?.targetAudience || ""
+      }
+      
+      // Llamamos al servicio de análisis
+      await businessPostService.contentAnalysis(post.businessPostId || '', analysisData)
+      
+      // Refrescamos la tabla para ver los cambios
+      toast.success('Análisis de contenido completado correctamente')
+      await loadPosts(currentPage)
+    } catch (error) {
+      console.error('Error al analizar el contenido:', error)
+      toast.error('Error al analizar el contenido. Por favor, inténtelo de nuevo.')
+    } finally {
+      setAnalysisLoading(prev => ({ ...prev, [post.id]: false }))
+    }
+  }
+
   if (loading && posts.length === 0) {
     return <div>Cargando...</div>
   }
@@ -361,13 +556,18 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       </h1>
 
       {/* Total de publicaciones */}
-      <div className={`mb-6 flex justify-start w-60 inline-block rounded-lg ${
-        isDarkMode ? 'bg-gray-800' : 'bg-gray-50'
-      } px-4 py-2 shadow-sm`}>
-        <p className={`text-md font-medium ${
-          isDarkMode ? 'text-gray-300' : 'text-gray-700'
-        }`}>
-          Total publicaciones: <span className="font-bold text-orange-500">{totalItems}</span>
+      <div
+        className={`mb-6 inline-block flex w-60 justify-start rounded-lg ${
+          isDarkMode ? 'bg-gray-800' : 'bg-gray-50'
+        } px-4 py-2 shadow-sm`}
+      >
+        <p
+          className={`text-md font-medium ${
+            isDarkMode ? 'text-gray-300' : 'text-gray-700'
+          }`}
+        >
+          Total publicaciones:{' '}
+          <span className="font-bold text-orange-500">{totalItems}</span>
         </p>
       </div>
 
@@ -376,28 +576,28 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
         <div className="flex flex-wrap items-start gap-4">
           {/* Filtro por tipo de publicación */}
           <div className="w-64">
-            <select
-              value={mediaType}
-              onChange={handleMediaTypeChange}
-              className={`w-full rounded-md p-2 ${
-                isDarkMode
-                  ? 'border-gray-700 bg-gray-800 text-white'
-                  : 'border-gray-300 bg-white text-gray-900'
-              } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
-            >
-              <option value="" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Todos los tipos de publicación</option>
-              <option value="IMAGE" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Imagen</option>
-              <option value="VIDEO" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Video</option>
-              <option value="CAROUSEL_ALBUM" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Carrusel</option>
-            </select>
-          </div>
+          <select
+            value={mediaType}
+            onChange={handleMediaTypeChange}
+            className={`w-full rounded-md p-2 ${
+              isDarkMode
+                ? 'border-gray-700 bg-gray-800 text-white'
+                : 'border-gray-300 bg-white text-gray-900'
+            } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
+          >
+            <option value="" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Todos los tipos de publicación</option>
+            <option value="IMAGE" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Imagen</option>
+            <option value="VIDEO" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Video</option>
+            <option value="CAROUSEL_ALBUM" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Carrusel</option>
+          </select>
+        </div>
 
           {/* Filtro por usuario */}
           <div className="w-64">
             <CustomMultiSelect
               selectedUsers={selectedUsers}
               handleUserChange={handleUserChange}
-              businessAccounts={businessAccounts}
+              businessAccounts={getBusinessAccountsForMultiselect()}
               isDarkMode={isDarkMode}
             />
           </div>
@@ -406,7 +606,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
         <button
           onClick={handleGenerateExcel}
           disabled={loading || accountIds.length === 0}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md ${
+          className={`flex items-center gap-2 rounded-md px-4 py-2 ${
             isDarkMode
               ? 'bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700'
               : 'bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300'
@@ -469,10 +669,10 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                     </div>
                     <button
                       onClick={() => requestSort(column)}
-                      className={`ml-2 p-1 rounded-full hover:bg-opacity-20 ${
-                        isDarkMode 
-                          ? 'bg-gray-800/40 border border-gray-700 hover:bg-gray-700/80 text-gray-300 hover:text-gray-100' 
-                          : 'hover:bg-orange-500 text-gray-700'
+                      className={`ml-2 rounded-full p-1 hover:bg-opacity-20 ${
+                        isDarkMode
+                          ? 'border border-gray-700 bg-gray-800/40 text-gray-300 hover:bg-gray-700/80 hover:text-gray-100'
+                          : 'text-gray-700 hover:bg-orange-500'
                       } transition-colors`}
                     >
                       {getSortIcon(column)}
@@ -499,9 +699,11 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
             {posts && posts.length > 0 ? (
               posts.map((post) => (
                 <tr
-                  key={post.id}
+                  key={`post-${post.id || post.businessPostId || Math.random().toString()}`}
                   className={`${
-                    isDarkMode ? 'hover:bg-gray-800 border-gray-700'  : 'hover:bg-gray-50'
+                    isDarkMode
+                      ? 'border-gray-700 hover:bg-gray-800'
+                      : 'hover:bg-gray-50'
                   } border-b`}
                 >
                   <td className="whitespace-nowrap px-4 py-4">
@@ -554,14 +756,16 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                     )}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {post.publicationDate ? new Date(post.publicationDate).toLocaleString('es-ES', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: false,
-                    }) : ''}
+                    {post.publicationDate
+                      ? new Date(post.publicationDate).toLocaleString('es-ES', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: false,
+                        })
+                      : ''}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     {post.contentFormat}
@@ -569,45 +773,82 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                   <td className="whitespace-nowrap px-4 py-4">
                     {post.creatorAccount}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {post.topics || 'No aplica'}
+                  <td className="whitespace-normal px-4 py-4">
+                    {post.content_topics && post.content_topics.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {post.content_topics.map((topic, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
+                          >
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-500">No aplica</span>
+                    )}
+                  </td>
+
+                  {/* Celda para content_objectives con badges individuales */}
+                  <td className="whitespace-normal px-4 py-4">
+                    {post.content_objectives &&
+                    post.content_objectives.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {post.content_objectives.map((objective, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
+                          >
+                            {objective}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-500">No aplica</span>
+                    )}
+                  </td>
+                  <td className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap px-4 py-4">
+                    {post.description || 'No aplica'}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
-                      {post.objective || 'No aplica'}
-                    </span>
+                    {post.videoTranscript
+                      ? 'Sin transcripción'
+                      : 'Sin transcripción'}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {'No aplica'}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {post.videoTranscript ? 'Sin transcripción' : 'Sin transcripción'}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
+                  <td className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap px-4 py-4">
                     {post.scriptAdaptation || 'No aplica'}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => openPostModal(post)}
-                        className={`rounded-md p-2 ${
-                          isDarkMode
-                            ? 'bg-gray-600 hover:bg-gray-700'
-                            : 'bg-gray-500 hover:bg-gray-600'
-                        } text-white`}
-                      >
-                        <Eye size={16} />
-                      </button>
-                      {post.status !== 'APPROVED' && (
+                      {post.content_objectives && post.content_objectives.length > 0 ? (
+                        // Si ya tiene objetivo, mostrar botón de visualización
                         <button
-                          onClick={() => handleApproval(post.id, 'approved')}
+                          onClick={() => openPostModal(post)}
                           className={`rounded-md p-2 ${
                             isDarkMode
-                              ? 'bg-green-600 hover:bg-green-700'
-                              : 'bg-green-500 hover:bg-green-600'
+                              ? 'bg-gray-600 hover:bg-gray-700'
+                              : 'bg-gray-500 hover:bg-gray-600'
                           } text-white`}
                         >
-                          <Check size={16} />
+                          <Eye size={16} />
+                        </button>
+                      ) : (
+                        // Si no tiene objetivo, mostrar botón de análisis
+                        <button
+                          onClick={() => handleContentAnalysis(post)}
+                          disabled={analysisLoading[post.id]}
+                          className={`rounded-md p-2 ${
+                            isDarkMode
+                              ? 'bg-blue-600 hover:bg-blue-700'
+                              : 'bg-blue-500 hover:bg-blue-600'
+                          } text-white`}
+                        >
+                          {analysisLoading[post.id] ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                          ) : (
+                            <BarChart2 size={16} />
+                          )}
                         </button>
                       )}
                     </div>
@@ -616,11 +857,14 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={10} className={`px-4 py-4 text-center ${
-                    isDarkMode 
-                      ? 'text-gray-400 bg-gray-900' 
-                      : 'text-gray-500 bg-white'
-                  }`}>
+                <td
+                  colSpan={10}
+                  className={`px-4 py-4 text-center ${
+                    isDarkMode
+                      ? 'bg-gray-900 text-gray-400'
+                      : 'bg-white text-gray-500'
+                  }`}
+                >
                   No hay publicaciones que coincidan con los filtros
                   seleccionados.
                 </td>
@@ -642,13 +886,25 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
               isDarkMode
                 ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
                 : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400'
-            } border flex items-center justify-center min-w-[100px]`}
+            } flex min-w-[100px] items-center justify-center border`}
           >
             {loadingPrevPage ? (
               <div className="flex items-center">
                 <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 <span>Cargando</span>
               </div>
@@ -663,18 +919,32 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
 
           <button
             onClick={() => handlePageChange(currentPage + 1)}
-            disabled={!nextPageToken || currentPage >= totalPages || loadingNextPage}
+            disabled={
+              !nextPageToken || currentPage >= totalPages || loadingNextPage
+            }
             className={`rounded-md px-4 py-2 ${
               isDarkMode
                 ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
                 : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400'
-            } border flex items-center justify-center min-w-[100px]`}
+            } flex min-w-[100px] items-center justify-center border`}
           >
             {loadingNextPage ? (
               <div className="flex items-center">
                 <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 <span>Cargando</span>
               </div>
