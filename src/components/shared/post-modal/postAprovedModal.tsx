@@ -430,19 +430,22 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
 
             {/* Tags */}
             <div className="mb-4 flex flex-wrap gap-2">
-              {content_objectives?.map((objective, index) => (
-                <span 
-                  key={index} 
-                  className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
-                >
-                  <span className="mr-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
-                    Ⓘ
+              {Array.isArray(content_objectives) && content_objectives.length > 0 ? (
+                content_objectives.map((objective, index) => (
+                  <span 
+                    key={index} 
+                    className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
+                  >
+                    <span className="mr-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+                      Ⓘ
+                    </span>
+                    {objective}
                   </span>
-                  {objective}
-                </span>
-              ))}
+                ))
+              ) : (
+                <span className="text-sm text-gray-500">No aplica</span>
+              )}
             </div>
-
             {/* Author info */}
             <div className="mb-6 flex items-center">
               <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 text-yellow-800">
