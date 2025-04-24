@@ -822,7 +822,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center space-x-2">
-                      {post.content_objectives && post.content_objectives.length > 0 && Array.isArray(post.content_objectives) ? (
+                      {post.content_objectives && post.content_objectives.length > 0 ? (
                         // Si ya tiene objetivo, mostrar botón de visualización
                         <button
                           onClick={() => openPostModal(post)}
