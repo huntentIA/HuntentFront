@@ -793,7 +793,8 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                   {/* Celda para content_objectives con badges individuales */}
                   <td className="whitespace-normal px-4 py-4">
                     {post.content_objectives &&
-                    post.content_objectives.length > 0 ? (
+                    post.content_objectives.length > 0 &&
+                    Array.isArray(post.content_objectives) ? (
                       <div className="flex flex-wrap gap-2">
                         {post.content_objectives.map((objective, index) => (
                           <span
@@ -821,7 +822,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center space-x-2">
-                      {post.content_objectives && post.content_objectives.length > 0 ? (
+                      {post.content_objectives && post.content_objectives.length > 0 && Array.isArray(post.content_objectives) ? (
                         // Si ya tiene objetivo, mostrar botón de visualización
                         <button
                           onClick={() => openPostModal(post)}
