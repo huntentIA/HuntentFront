@@ -774,7 +774,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                     {post.creatorAccount}
                   </td>
                   <td className="whitespace-normal px-4 py-4">
-                    {post.content_topics && post.content_topics.length > 0 ? (
+                    {post.content_topics && post.content_topics.length > 0 && Array.isArray(post.content_topics) ? (
                       <div className="flex flex-wrap gap-2">
                         {post.content_topics.map((topic, index) => (
                           <span
