@@ -15,7 +15,6 @@ import {
   Post,
   PostQueryParams,
   SortConfig,
-  ApprovalStatus,
 } from './interfaces/content-planner'
 import PostModal from '../../shared/post-modal/postModal'
 import postService from '../../../services/post.service'
@@ -45,8 +44,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   
   // States for filters and configuration
   const [mediaType, setMediaType] = useState<string>('')
-  const [approvalStatus, setApprovalStatus] =
-    useState<ApprovalStatus>('PENDING')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: 'creatorAccount',
@@ -189,7 +186,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     mediaType,
-    approvalStatus,
     selectedUsers,
     sortConfig,
     accountIds,
@@ -235,8 +231,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     if (effectiveSelectedUsers.length > 0) {
       params.creator_accounts = effectiveSelectedUsers
     }
-
-    if (approvalStatus !== 'PENDING') params.status = approvalStatus
 
     return params
   }
@@ -335,12 +329,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   // Filter change handlers
   const handleMediaTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setMediaType(e.target.value)
-  }
-
-  const handleApprovalStatusChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setApprovalStatus(e.target.value as ApprovalStatus)
   }
 
   const handleUserChange = (event: {
@@ -502,23 +490,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
             <option value="IMAGE" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Imagen</option>
             <option value="VIDEO" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Video</option>
             <option value="CAROUSEL_ALBUM" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Carrusel</option>
-          </select>
-        </div>
-
-        {/* Filtro por estado de aprobación */}
-        <div className="w-64">
-          <select
-            value={approvalStatus}
-            onChange={handleApprovalStatusChange}
-            className={`w-full rounded-md p-2 ${
-              isDarkMode
-                ? 'border-gray-700 bg-gray-800 text-gray-200'
-                : 'border-gray-300 bg-white text-gray-900'
-            } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
-          >
-            <option value="PENDING" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Pendientes</option>
-            <option value="APPROVED" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Aprobados</option>
-            <option value="REJECTED" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Rechazados</option>
           </select>
         </div>
 

@@ -141,9 +141,6 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
     description,
     publicationDate,
     hashtags,
-    topics,
-    rights,
-    call_to_action,
     status,
     videoTranscript,
     carousel_items,
@@ -354,30 +351,6 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
                   </h3>
                   <div className="min-h-[40px] rounded-lg bg-gray-100 p-3">
                     {formatDate(publicationDate) || 'No hay fecha y hora de publicación.'}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="mb-2 text-sm text-gray-600">Gancho</h3>
-                    <div className="min-h-[40px] rounded-lg bg-gray-100 p-3">
-                      {rights || 'No hay gancho.'}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="mb-2 text-sm text-gray-600">CTA</h3>
-                    <div className="min-h-[40px] rounded-lg bg-gray-100 p-3">
-                      {call_to_action || 'No hay CTA.'}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="mb-2 text-sm text-gray-600">
-                    Temas de los que habla
-                  </h3>
-                  <div className="min-h-[60px] rounded-lg bg-gray-100 p-3">
-                    {topics || 'No hay temas.'}
                   </div>
                 </div>
               </div>
