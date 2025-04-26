@@ -2,6 +2,7 @@ export type BusinessesAccountResponse = {
   id: string
   businessName: string
   userIDs: string[]
+  contentFormat: string
   instagramAccount?: string
   objective?: number[]
   targetAudience?: string

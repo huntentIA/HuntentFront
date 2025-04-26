@@ -35,7 +35,7 @@ export interface BusinessPostData {
   brand_affinity_score?: number
   global_content_analysis?: string
   content_adapter?: string
-  video_transcription?: string
+  videoTranscript?: string
   businessPostStatus?: string
 }
 
@@ -49,6 +49,7 @@ export interface BusinessPostDataCreate {
   businessId: string
   publicationDate: Date
   status: string
+  contentFormat: string
 }
 
 export type BusinessPostResponse = {
@@ -71,6 +72,7 @@ export interface BusinessPostQueryParams {
     content_format?: string
     creator_account?: string
     creator_accounts?: string[] 
+    account_ids?: string[]
     publication_date_start?: string 
     publication_date_end?: string
 }

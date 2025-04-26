@@ -279,12 +279,10 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   const handleApproval = async (postId: string, status: string, publicationDate: Date) => {
     setLoading(true)
     try {
-      // Si está aprobando un video, verificar primero si tiene transcripción
-      if (status === 'approved') {
-        // Buscar el post actual en la lista de posts
-        const currentPost = posts.find(post => post.id === postId)
-        
-        // Verificar si es un video sin transcripción
+      // Buscar el post actual en la lista de posts
+      const currentPost = posts.find(post => post.id === postId)
+
+      if (status === 'approved') {  
         if (currentPost && currentPost.contentFormat === 'VIDEO' && !currentPost.videoTranscript) {
           toast.warning('Es necesario transcribir el video antes de aprobarlo.');
           setLoading(false);
@@ -298,6 +296,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         businessId: businessId,
         publicationDate: publicationDate,
         status: newStatus,
+        contentFormat: currentPost?.contentFormat || '',
       }
 
       //const success = await postService.updatePostStatus(postId, newStatus)
@@ -892,6 +891,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
       {selectedPost && (
         <PostModal
           post={selectedPost}
+          businessId={businessId}
           closeModal={closePostModal}
           isOpen={true}
         />

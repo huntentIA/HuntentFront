@@ -482,8 +482,8 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                         <span
                           className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} flex items-center`}
                         >
-                          <span className="mr-1 font-bold">Industria:</span>
-                          <span className="rounded-md bg-blue-100 bg-opacity-20 px-2 py-1 dark:bg-blue-900 dark:bg-opacity-20">
+                          <span className=" text-xs rounded-md bg-blue-100 bg-opacity-20 px-2 py-1 dark:bg-blue-900 dark:bg-opacity-20">
+                            industria:
                             {account.industry
                               ?.map((industry) => industry)
                               .join(', ') || 'N/A'}
@@ -597,7 +597,7 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                     >
                       Información de la cuenta
                     </h4>
-                    <div className="mb-2 flex flex-wrap gap-1">
+                    <div className="mb-2 flex flex-wrap gap-1 justify-center">
                       {/* Región */}
                       <div className="flex items-center gap-2">
                         <div
@@ -665,17 +665,6 @@ const UserAccount: React.FC<AccountTableProps> = ({ isDarkMode }) => {
                             isDarkMode ? 'bg-green-400' : 'bg-green-500'
                           }`}
                         ></div>
-                        <span
-                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
-                            isDarkMode
-                              ? 'bg-gray-700/70 text-gray-200'
-                              : 'bg-gray-100 text-gray-700'
-                          }`}
-                        >
-                          {account.industry
-                            ?.map((industry) => industry)
-                            .join(', ') || 'N/A'}
-                        </span>
                       </div>
                     </div>
                   </div>

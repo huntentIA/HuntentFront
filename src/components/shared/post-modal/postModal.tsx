@@ -6,18 +6,20 @@ import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
 import { Post } from '../../pages/content-planner/interfaces/content-planner'
-import postService from '../../../services/post.service'
+import { BusinessPostDataCreate } from '../../../services/interfaces/business-post-service'
+import BusinessPostService from '../../../services/business-post.service'
 
 // Definición de tipos
 export type PostStatus = 'APPROVED' | 'REJECTED' | 'PENDING'
 
 interface PostModalProps {
   post: Post | null
+  businessId: string
   closeModal: () => void
   isOpen: boolean
 }
 
-const PostModal: React.FC<PostModalProps> = ({ post, closeModal, isOpen }) => {
+const PostModal: React.FC<PostModalProps> = ({ post, businessId, closeModal, isOpen }) => {
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false)
   const [isTranscriptionRequired, setIsTranscriptionRequired] = useState<boolean>(false)
 
@@ -66,11 +68,26 @@ const PostModal: React.FC<PostModalProps> = ({ post, closeModal, isOpen }) => {
   }
 
   // In PostModal.tsx
-const handleApproval = async (post: Post, status: PostStatus): Promise<void> => {
+const handleApproval = async (post: Post, businessId: string, status: PostStatus): Promise<void> => {
   if (!post) return
 
   try {
-    const success = await postService.updatePostStatus(post.id, status);
+
+    if (status === 'APPROVED') {
+      if(post.contentFormat === 'VIDEO' && !post.videoTranscript) {
+        toast.warning('Es necesario transcribir el video antes de aprobarlo.');
+        return;
+      }
+    }
+    const newStatus = status === 'APPROVED' ? 'APPROVED' : 'REJECTED'
+    const businessPostData: BusinessPostDataCreate = {
+      postId: post.id,
+      businessId: businessId,
+      publicationDate: new Date(post.publicationDate),
+      status: newStatus,
+      contentFormat: post.contentFormat,
+    }
+    const success = await BusinessPostService.createBusinessPost(businessPostData)
     
     if (success) {
       toast.success(
@@ -102,8 +119,6 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
       await transcribeService.transcribe(post.id, post.mediaURL)
 
       toast.success('La transcripción ha sido iniciada exitosamente')
-      // Actualizar el estado para que no se requiera transcripción después de iniciarla
-      // Nota: esto es optimista, ya que en realidad habría que esperar la respuesta completa
       setIsTranscriptionRequired(false)
     } catch (error) {
       toast.error('Error al iniciar la transcripción')
@@ -388,14 +403,14 @@ const handleApproval = async (post: Post, status: PostStatus): Promise<void> => 
             {status !== 'APPROVED' && (
             <div className="flex gap-4">
               <button
-                onClick={() => handleApproval(post,'REJECTED')}
+                onClick={() => handleApproval(post, businessId, 'REJECTED')}
                 className="rounded-lg bg-pink-500 px-6 py-2 text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={status === 'REJECTED'}
               >
                 RECHAZAR
               </button>
               <button
-                onClick={() => handleApproval(post, 'APPROVED')}
+                onClick={() => handleApproval(post, businessId, 'APPROVED')}
                 className="rounded-lg bg-green-500 px-6 py-2 text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={status === 'APPROVED' || isTranscriptionRequired}
               >

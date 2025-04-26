@@ -36,20 +36,27 @@ const BusinessPostService = {
 
             if (params.max_date) queryParams.append('max_date', params.max_date)
 
-            if (params.content_format) queryParams.append('content_format', params.content_format)
+            if (params.content_format && params.content_format.trim() !== '') {
+                queryParams.append('content_format', params.content_format.trim())
+            }
 
             if (params.creator_account) queryParams.append('creator_account', params.creator_account)
 
             if (params.creator_accounts) queryParams.append('creator_accounts', params.creator_accounts.join(','))
 
+            if (params.account_ids && params.account_ids.length > 0) {
+                queryParams.append('account_ids', params.account_ids.join(','))
+            }
+
             if (params.publication_date_start) queryParams.append('publication_date_start', params.publication_date_start)
 
             if (params.publication_date_end) queryParams.append('publication_date_end', params.publication_date_end)
 
+            if (params.status) queryParams.append('status', params.status)
+
             const url = `/api/business_post${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
 
             const { data } = await httpClient.get<GetPostResponse>(url)
-
             return data
         } catch (error) {
             console.error('Error al obtener las publicaciones del negocio:', error)

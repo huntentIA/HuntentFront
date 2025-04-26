@@ -46,6 +46,7 @@ export interface Post {
   brand_tone_business?: string
   target_audience_business?: string
   businessPostId?: string
+  businessId?: string
   // Add any other properties your posts have
 }
 

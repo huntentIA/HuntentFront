@@ -15,6 +15,7 @@ export type PostStatus = 'APPROVED'
 interface PostAprovedModalProps {
   post: Post | null
   closeModal: () => void
+  loadPosts: () => void
   isOpen: boolean
   isDarkMode?: boolean
 }
@@ -23,6 +24,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
   post,
   closeModal,
   isOpen,
+  loadPosts,
 }) => {
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false)
   const [captionExpanded, setCaptionExpanded] = useState<boolean>(true)
@@ -138,6 +140,8 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
       
       setIsEditingAdaptation(false)
       toast.success('Adaptación guardada correctamente')
+      closeModal()
+      loadPosts()
       
       // Recargar la información del post
       await reloadPost()
@@ -167,13 +171,14 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
         contentFormat: currentPost.contentFormat || '',
         content_topics: currentPost.content_topics || [],
         pain_or_desire: [currentPost.pain_or_desire || { pain: '', desire: '' }],
-        use_ai: true
+        use_ai: true,
+        video_transcription: currentPost.contentFormat === 'VIDEO' ? currentPost.videoTranscript || '' : ''
       })
       
       toast.success('Adaptación con IA generada correctamente')
-      
+      closeModal()
+      loadPosts()
       // Recargar la información del post
-      await reloadPost()
     } catch (error) {
       toast.error('Error al generar la adaptación con IA')
       console.error('Error al generar adaptación con IA:', error)

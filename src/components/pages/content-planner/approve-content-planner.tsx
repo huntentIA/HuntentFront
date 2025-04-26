@@ -300,7 +300,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
           hook: item.hook || '',
           narrative_structure: item.narrative_structure || '',
           pain_or_desire: item.pain_or_desire || '',
-          video_transcription: item.video_transcription || '',
+          videoTranscript: item.videoTranscript || '',
           businessPostStatus: item.businessPostStatus || '',
           call_to_action: item.call_to_action || '',
           brand_tone_business: business?.[0]?.brandTone || '',
@@ -487,12 +487,10 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       let accountInfo = null;
       try {
         if (post.accountID && businessId) {
-          console.log('entra')
           const accountData = await businessAccountService.getAccountByBusinessIdAndAccountId(
             businessId,
             post.accountID
           );
-          console.log(accountData.accounts[0])
           if (accountData && accountData.accounts && accountData.accounts.length > 0) {
             accountInfo = accountData.accounts[0];
           }
@@ -812,9 +810,9 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                   <td className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap px-4 py-4">
                     {post.description || 'No aplica'}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">
+                  <td className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap px-4 py-4">
                     {post.videoTranscript
-                      ? 'Sin transcripción'
+                      ? post.videoTranscript
                       : 'Sin transcripción'}
                   </td>
                   <td className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap px-4 py-4">
@@ -959,6 +957,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
         <PostAprovedModal
           post={selectedPost}
           closeModal={closePostModal}
+          loadPosts={loadPosts}
           isOpen={true}
           isDarkMode={isDarkMode}
         />
