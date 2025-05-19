@@ -6,6 +6,8 @@ export const tooltipDescriptions = {
     likes: 'Total de likes de la publicación',
     comments: 'Cantidad de comentarios recibidos',
     totalInteractions: 'Suma de likes y comentarios',
+    description: 'Descripción de la publicación',
+    publicationDate: 'Fecha de publicación',
     postEngagement: {
         main: 'Porcentaje de interacción según los seguidores.',
         example:

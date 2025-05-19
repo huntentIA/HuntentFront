@@ -16,6 +16,8 @@ const BusinessPostService = {
         try {
             const queryParams = new URLSearchParams()
 
+            if (params.all) queryParams.append('all', params.all.toString())
+                
             if (params.businessId) queryParams.append('businessId', params.businessId)
 
             if (params.limit) queryParams.append('limit', params.limit)
@@ -52,7 +54,13 @@ const BusinessPostService = {
 
             if (params.publication_date_end) queryParams.append('publication_date_end', params.publication_date_end)
 
-            if (params.status) queryParams.append('status', params.status)
+            if (params.status) {
+                if (Array.isArray(params.status)) {
+                    queryParams.append('status', params.status.join(','))
+                } else {
+                    queryParams.append('status', params.status)
+                }
+            }
 
             const url = `/api/business_post${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
 

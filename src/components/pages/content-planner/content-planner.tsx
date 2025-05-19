@@ -24,7 +24,7 @@ import { getBusinessAccountsByIdResponse } from '../../../services/interfaces/bu
 import CustomMultiSelect from '../../shared/multiselect/multiselect'
 import { tooltipDescriptions } from '../../../utils/toolDescriptions'
 import { BusinessPostDataCreate } from '../../../services/interfaces/business-post-service'
-import BusinessPostService from '../../../services/business-post.service'
+import businessPostService from '../../../services/business-post.service'
 
 interface UserData {
   id: string
@@ -242,6 +242,17 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
       setLoading(true)
       setError(null)
 
+      // Obtener posts que ya están aprobados o rechazados para este negocio
+      const processedPostsResponse = await businessPostService.getBusinessPost({
+        businessId: businessId,
+        sort_by: 'creatorAccount',
+        sort_order: 'desc',
+        status: ['APPROVED', 'REJECTED'],
+      });
+
+      // Crear lista de IDs de posts que ya fueron procesados
+      const processedPostIds = processedPostsResponse?.items?.map(item => item.id) || [];
+
       const params = buildQueryParams(page)
       const response = await postService.getPosts(params)
 
@@ -249,7 +260,19 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         throw new Error('No items returned from API')
       }
 
-      setPosts(response.items)
+      // Filtrar posts para no mostrar los que ya están aprobados o rechazados
+      const filteredPosts = response.items.filter(post => 
+        !processedPostIds.includes(post.id)
+      );
+
+      setPosts(filteredPosts)
+      
+      // Si todos los posts fueron filtrados pero había posts originalmente,
+      // mostrar un mensaje informativo
+      if (filteredPosts.length === 0 && response.items.length > 0) {
+        toast.info('Todas las publicaciones ya han sido procesadas (aprobadas o rechazadas).')
+      }
+      
       setTotalItems(response.total_items || 0)
       setTotalPages(response.total_pages || 1)
       setCurrentPage(response.page_number || 1)
@@ -294,11 +317,14 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
       }
 
       //const success = await postService.updatePostStatus(postId, newStatus)
-      const success = await BusinessPostService.createBusinessPost(businessPostData)
+      const success = await businessPostService.createBusinessPost(businessPostData)
       if (success) {
         toast.success(
           `El post ha sido ${status === 'approved' ? 'aprobado' : 'rechazado'}.`
         )
+        
+        // Recargar los posts después de aprobar/rechazar para actualizar la lista
+        await loadPosts(currentPage)
       } else {
         toast.error(
           `No se pudo ${status === 'approved' ? 'aprobar' : 'rechazar'} el post.`

@@ -37,6 +37,7 @@ export interface BusinessPostData {
   content_adapter?: string
   videoTranscript?: string
   businessPostStatus?: string
+  id?: string
 }
 
 export interface PainOrDesire {
@@ -64,11 +65,12 @@ export interface BusinessPostQueryParams {
     page_token?: string
     prev_token?: string
     is_prev_page?: boolean
+    all?: boolean
     sort_by?: string
     sort_order?: 'asc' | 'desc'
     min_date?: string 
     max_date?: string 
-    status?: string
+    status?: string | string[]
     content_format?: string
     creator_account?: string
     creator_accounts?: string[] 

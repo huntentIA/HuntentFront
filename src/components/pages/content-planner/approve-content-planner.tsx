@@ -40,7 +40,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   // Obtener datos de navegación (si proviene de user-account)
   const location = useLocation()
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
-  
+
   // States for filters and configuration
   const [mediaType, setMediaType] = useState<string>('')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
@@ -52,7 +52,9 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   // States for data and pagination
   const [posts, setPosts] = useState<Post[]>([])
   const [businessId, setBusinessId] = useState<string>('')
-  const [business, setBusiness] = useState<BusinessesAccountResponse | null>(null)
+  const [business, setBusiness] = useState<BusinessesAccountResponse | null>(
+    null
+  )
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
@@ -69,8 +71,12 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [businessAccounts, setBusinessAccounts] = useState<any[]>([])
   // Nuevos estados para almacenar opciones de filtro basadas en datos reales
-  const [availableCreators, setAvailableCreators] = useState<{ id: string, accountName: string }[]>([])
-  const [analysisLoading, setAnalysisLoading] = useState<{[key: string]: boolean}>({})
+  const [availableCreators, setAvailableCreators] = useState<
+    { id: string; accountName: string }[]
+  >([])
+  const [analysisLoading, setAnalysisLoading] = useState<{
+    [key: string]: boolean
+  }>({})
 
   const columnNames = {
     contentFormat: 'Formato',
@@ -88,7 +94,6 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     outliers: 'Outliers',
   }
 
-  
   // Cargar los accountIds al inicio
   useEffect(() => {
     const fetchAccountIds = async () => {
@@ -152,7 +157,11 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   // Efecto para manejar la selección de cuenta desde user-account
   // Se ejecuta después de la carga inicial
   useEffect(() => {
-    if (initialLoadComplete && location.state && location.state.selectedCreator) {
+    if (
+      initialLoadComplete &&
+      location.state &&
+      location.state.selectedCreator
+    ) {
       setSelectedUsers([location.state.selectedCreator])
     }
   }, [location.state, initialLoadComplete])
@@ -162,20 +171,20 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       // Verificamos que exista en la lista de cuentas
       if (location.state?.selectedCreator && businessAccounts.length > 0) {
         const creatorExists = businessAccounts.some(
-          account => account.accountName === location.state.selectedCreator
+          (account) => account.accountName === location.state.selectedCreator
         )
-        
+
         // Si el creador no existe en las cuentas disponibles, limpiamos el filtro
         if (!creatorExists) {
           setSelectedUsers([])
-          
+
           // Y actualizamos el estado de navegación
           const newState = { ...location.state }
           delete newState.selectedCreator
           window.history.replaceState(newState, '')
         }
       }
-      
+
       setCurrentPage(1)
       loadPosts(1)
     }
@@ -186,17 +195,17 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     sortConfig,
     accountIds,
     businessId,
-    initialLoadComplete
+    initialLoadComplete,
   ])
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= totalPages) {
       if (newPage > currentPage) {
-        setLoadingNextPage(true);
+        setLoadingNextPage(true)
       } else {
-        setLoadingPrevPage(true);
+        setLoadingPrevPage(true)
       }
-      loadPosts(newPage);
+      loadPosts(newPage)
     }
   }
 
@@ -219,33 +228,39 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     }
 
     if (mediaType) params.content_format = mediaType
-    
+
     // Asegurarnos de aplicar el filtro de usuarios seleccionados
     // incluyendo el que viene por navegación si está presente
-    const effectiveSelectedUsers = selectedUsers.length > 0 
-      ? selectedUsers 
-      : (location.state?.selectedCreator ? [location.state.selectedCreator] : [])
-    
-    if (effectiveSelectedUsers.length > 0 && !effectiveSelectedUsers.includes('')) {
+    const effectiveSelectedUsers =
+      selectedUsers.length > 0
+        ? selectedUsers
+        : location.state?.selectedCreator
+          ? [location.state.selectedCreator]
+          : []
+
+    if (
+      effectiveSelectedUsers.length > 0 &&
+      !effectiveSelectedUsers.includes('')
+    ) {
       // Buscar los IDs de cuenta correspondientes a los nombres de cuenta seleccionados
-      const accountIdsToFilter: string[] = [];
-      
-      effectiveSelectedUsers.forEach(selectedUser => {
+      const accountIdsToFilter: string[] = []
+
+      effectiveSelectedUsers.forEach((selectedUser) => {
         // Intentar encontrar la cuenta por nombre o por ID
         const matchingAccount = availableCreators.find(
-          acc => acc.accountName === selectedUser || acc.id === selectedUser
-        );
-        
+          (acc) => acc.accountName === selectedUser || acc.id === selectedUser
+        )
+
         if (matchingAccount && matchingAccount.id) {
-          accountIdsToFilter.push(matchingAccount.id);
+          accountIdsToFilter.push(matchingAccount.id)
         } else {
           // Si no se encuentra una coincidencia exacta, usar el valor seleccionado directamente
-          accountIdsToFilter.push(selectedUser);
+          accountIdsToFilter.push(selectedUser)
         }
-      });
-      
+      })
+
       if (accountIdsToFilter.length > 0) {
-        params.account_ids = accountIdsToFilter;
+        params.account_ids = accountIdsToFilter
       }
     }
 
@@ -261,35 +276,38 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
 
       const params = buildQueryParams(page)
       const response = await businessPostService.getBusinessPost(params)
-      console.log(response)
 
       if (!response.items) {
         throw new Error('No items returned from API')
       }
 
       // Convertimos los elementos BusinessPostData a tipo Post
-      const transformedPosts = response.items.map(item => {
+      const transformedPosts = response.items.map((item) => {
         // Suponemos que el objeto de respuesta de BusinessPost tiene información relacionada
         // que podemos mapear a los campos de Post
         return {
           id: item.postId || '',
-          accountID: item.accountId || '', 
+          accountID: item.accountId || '',
           status: item.status || 'APPROVED',
-          mediaURL: item.mediaURL || '', 
-          publicationDate: item.publicationDate ? new Date(item.publicationDate).toISOString() : '',
-          publicationTime: item.publicationDate ? new Date(item.publicationDate).toTimeString() : '',
-          likes: item.likes || 0, 
-          comments: item.comments || 0, 
-          shares: item.shares || 0, 
-          saves: item.saves || 0, 
-          totalInteractions: item.totalInteractions || 0, 
-          postEngagement: item.postEngagement || 0, 
-          hashtags: item.hashtags || [], 
-          postURL: item.postURL || '', 
-          contentFormat: item.contentFormat || 'IMAGE', 
-          creatorAccount: item.creatorAccount || '', 
-          description: item.description || '', 
-          outliers: item.outliers || '', 
+          mediaURL: item.mediaURL || '',
+          publicationDate: item.publicationDate
+            ? new Date(item.publicationDate).toISOString()
+            : '',
+          publicationTime: item.publicationDate
+            ? new Date(item.publicationDate).toTimeString()
+            : '',
+          likes: item.likes || 0,
+          comments: item.comments || 0,
+          shares: item.shares || 0,
+          saves: item.saves || 0,
+          totalInteractions: item.totalInteractions || 0,
+          postEngagement: item.postEngagement || 0,
+          hashtags: item.hashtags || [],
+          postURL: item.postURL || '',
+          contentFormat: item.contentFormat || 'IMAGE',
+          creatorAccount: item.creatorAccount || '',
+          description: item.description || '',
+          outliers: item.outliers || '',
           carousel_items: item.carousel_items || [],
           businessPostId: item.businessPostId || '',
           content_adapter: item.content_adapter || '',
@@ -305,10 +323,10 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
           call_to_action: item.call_to_action || '',
           brand_tone_business: business?.[0]?.brandTone || '',
           target_audience_business: business?.[0]?.targetAudience || '',
-        } as Post;
-      });
+        } as Post
+      })
 
-      setPosts(transformedPosts);
+      setPosts(transformedPosts)
       setTotalItems(response.total_items || 0)
       setTotalPages(response.total_pages || 1)
       setCurrentPage(response.page_number || 1)
@@ -318,27 +336,33 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       setCurrentToken(response.current_token)
 
       // Extraer los creadores disponibles de los posts
-      const creators = transformedPosts.reduce((acc: { id: string, accountName: string }[], post) => {
-        if (post.accountID && post.creatorAccount && !acc.some(c => c.id === post.accountID)) {
-          acc.push({ id: post.accountID, accountName: post.creatorAccount });
-        }
-        return acc;
-      }, []);
-      
+      const creators = transformedPosts.reduce(
+        (acc: { id: string; accountName: string }[], post) => {
+          if (
+            post.accountID &&
+            post.creatorAccount &&
+            !acc.some((c) => c.id === post.accountID)
+          ) {
+            acc.push({ id: post.accountID, accountName: post.creatorAccount })
+          }
+          return acc
+        },
+        []
+      )
+
       if (creators.length > 0) {
-        setAvailableCreators(prevCreators => {
-          const combinedCreators = [...prevCreators];
-          creators.forEach(creator => {
-            if (!combinedCreators.some(c => c.id === creator.id)) {
-              combinedCreators.push(creator);
+        setAvailableCreators((prevCreators) => {
+          const combinedCreators = [...prevCreators]
+          creators.forEach((creator) => {
+            if (!combinedCreators.some((c) => c.id === creator.id)) {
+              combinedCreators.push(creator)
             }
-          });
-          return combinedCreators;
-        });
+          })
+          return combinedCreators
+        })
       }
 
       // Extraer los tipos de contenido disponibles
-      
     } catch (error) {
       console.error('Error loading posts:', error)
       setError('Error loading posts. Please try again.')
@@ -384,10 +408,13 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
       setSelectedUsers([location.state.selectedCreator])
     } else {
       setSelectedUsers(selectedValues)
-      
+
       // Si el usuario está cambiando manualmente el filtro, actualizamos el estado de navegación
       // para mantener consistencia si se recarga la página
-      if (location.state?.selectedCreator && !selectedValues.includes(location.state.selectedCreator)) {
+      if (
+        location.state?.selectedCreator &&
+        !selectedValues.includes(location.state.selectedCreator)
+      ) {
         // Crear un nuevo objeto de estado sin el selectedCreator
         const newState = { ...location.state }
         delete newState.selectedCreator
@@ -409,13 +436,24 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   const getSortIcon = (columnName: string) => {
     if (sortConfig.key === columnName) {
       return sortConfig.direction === 'asc' ? (
-        <ChevronUp size={14} className={`${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`} />
+        <ChevronUp
+          size={14}
+          className={`${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}
+        />
       ) : (
-        <ChevronDown size={14} className={`${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`} />
+        <ChevronDown
+          size={14}
+          className={`${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}
+        />
       )
     }
     // Mostrar un icono gris más claro cuando la columna no está ordenada
-    return <ChevronDown size={14} className={`opacity-50 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />;
+    return (
+      <ChevronDown
+        size={14}
+        className={`opacity-50 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+      />
+    )
   }
   const getFormattedTooltip = (column: string) => {
     const tooltip =
@@ -439,21 +477,21 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     try {
       setLoading(true)
       const blob = await businessPostService.generateExcelReport(businessId)
-      
+
       // Crear URL del blob
       const url = window.URL.createObjectURL(blob)
-      
+
       // Crear elemento de enlace temporal
       const link = document.createElement('a')
       link.href = url
       link.download = `reporte-posts-${new Date().toISOString().split('T')[0]}.xlsx`
-      
+
       // Simular clic y limpiar
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
-      
+
       toast.success('Reporte Excel generado exitosamente')
     } catch (error) {
       console.error('Error al generar el reporte Excel:', error)
@@ -467,69 +505,80 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   const getBusinessAccountsForMultiselect = () => {
     if (availableCreators.length > 0) {
       // Transformar la estructura para que el multiselect existente pueda usarla
-      return availableCreators.map(creator => ({
+      return availableCreators.map((creator) => ({
         id: creator.id,
-        accountName: creator.accountName || creator.id
-      }));
+        accountName: creator.accountName || creator.id,
+      }))
     } else {
-      return businessAccounts.map(account => ({
+      return businessAccounts.map((account) => ({
         id: account.id || account.accountName,
-        accountName: account.accountName || account.id
-      }));
+        accountName: account.accountName || account.id,
+      }))
     }
-  };
+  }
 
   const handleContentAnalysis = async (post: Post) => {
     try {
-      setAnalysisLoading(prev => ({ ...prev, [post.id]: true }))
-      
+      setAnalysisLoading((prev) => ({ ...prev, [post.id]: true }))
+
       // Intentamos obtener la información de la cuenta asociada
-      let accountInfo = null;
+      let accountInfo = null
       try {
         if (post.accountID && businessId) {
-          const accountData = await businessAccountService.getAccountByBusinessIdAndAccountId(
-            businessId,
-            post.accountID
-          );
-          if (accountData && accountData.accounts && accountData.accounts.length > 0) {
-            accountInfo = accountData.accounts[0];
+          const accountData =
+            await businessAccountService.getAccountByBusinessIdAndAccountId(
+              businessId,
+              post.accountID
+            )
+          if (
+            accountData &&
+            accountData.accounts &&
+            accountData.accounts.length > 0
+          ) {
+            accountInfo = accountData.accounts[0]
           }
         }
       } catch (error) {
-        console.error('Error al obtener información de la cuenta:', error);
+        console.error('Error al obtener información de la cuenta:', error)
       }
-      
+
       // Preparamos los datos para el análisis
       const analysisData: ContentAnalysisData = {
-        brand_tone: accountInfo?.brand_tone || "",
-        target_audience: accountInfo?.target_audience?.join(', ') || "",
+        brand_tone: accountInfo?.brand_tone || '',
+        target_audience: accountInfo?.target_audience?.join(', ') || '',
         outliers: post.outliers ? Number(post.outliers) : null,
-        brand_tone_business: business?.[0]?.brandTone || "",
-        objective: business?.[0]?.objective?.join(', ') || "",
-        contentFormat: post.contentFormat || "IMAGE",
+        brand_tone_business: business?.[0]?.brandTone || '',
+        objective: business?.[0]?.objective?.join(', ') || '',
+        contentFormat: post.contentFormat || 'IMAGE',
         likes: post.likes || 0,
         comments: post.comments || 0,
         total_interactions: post.totalInteractions || 0,
-        description: post.description || ""
+        description: post.description || '',
       }
 
-      if(post.contentFormat === "VIDEO"){
-        analysisData.video_transcription = post.videoTranscript || ""
-      }else {
-        analysisData.target_audience_business = business?.[0]?.targetAudience || ""
+      if (post.contentFormat === 'VIDEO') {
+        analysisData.video_transcription = post.videoTranscript || ''
+      } else {
+        analysisData.target_audience_business =
+          business?.[0]?.targetAudience || ''
       }
-      
+
       // Llamamos al servicio de análisis
-      await businessPostService.contentAnalysis(post.businessPostId || '', analysisData)
-      
+      await businessPostService.contentAnalysis(
+        post.businessPostId || '',
+        analysisData
+      )
+
       // Refrescamos la tabla para ver los cambios
       toast.success('Análisis de contenido completado correctamente')
       await loadPosts(currentPage)
     } catch (error) {
       console.error('Error al analizar el contenido:', error)
-      toast.error('Error al analizar el contenido. Por favor, inténtelo de nuevo.')
+      toast.error(
+        'Error al analizar el contenido. Por favor, inténtelo de nuevo.'
+      )
     } finally {
-      setAnalysisLoading(prev => ({ ...prev, [post.id]: false }))
+      setAnalysisLoading((prev) => ({ ...prev, [post.id]: false }))
     }
   }
 
@@ -574,21 +623,41 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
         <div className="flex flex-wrap items-start gap-4">
           {/* Filtro por tipo de publicación */}
           <div className="w-64">
-          <select
-            value={mediaType}
-            onChange={handleMediaTypeChange}
-            className={`w-full rounded-md p-2 ${
-              isDarkMode
-                ? 'border-gray-700 bg-gray-800 text-white'
-                : 'border-gray-300 bg-white text-gray-900'
-            } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
-          >
-            <option value="" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Todos los tipos de publicación</option>
-            <option value="IMAGE" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Imagen</option>
-            <option value="VIDEO" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Video</option>
-            <option value="CAROUSEL_ALBUM" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Carrusel</option>
-          </select>
-        </div>
+            <select
+              value={mediaType}
+              onChange={handleMediaTypeChange}
+              className={`w-full rounded-md p-2 ${
+                isDarkMode
+                  ? 'border-gray-700 bg-gray-800 text-white'
+                  : 'border-gray-300 bg-white text-gray-900'
+              } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
+            >
+              <option
+                value=""
+                className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}
+              >
+                Todos los tipos de publicación
+              </option>
+              <option
+                value="IMAGE"
+                className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}
+              >
+                Imagen
+              </option>
+              <option
+                value="VIDEO"
+                className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}
+              >
+                Video
+              </option>
+              <option
+                value="CAROUSEL_ALBUM"
+                className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}
+              >
+                Carrusel
+              </option>
+            </select>
+          </div>
 
           {/* Filtro por usuario */}
           <div className="w-64">
@@ -631,14 +700,16 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                 </div>
               </th>
               {[
-                'publicationDate',
-                'contentFormat',
                 'creatorAccount',
-                'topics',
-                'objective',
+                'contentFormat',
+                'publicationDate',
                 'description',
+                'postEngagement',
+                'outliers',
+                /* 'topics',
+                'objective',
                 'transcript',
-                'scriptAdaptation',
+                'scriptAdaptation', */
               ].map((column) => (
                 <th
                   key={column}
@@ -652,7 +723,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                     } group relative flex items-center justify-between`}
                   >
                     <div className="flex items-center">
-                      <span>
+                      <span >
                         {columnNames[column as keyof typeof columnNames]}
                       </span>
                       <div className="group relative ml-2">
@@ -754,6 +825,12 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                     )}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
+                    {post.creatorAccount}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">
+                    {post.contentFormat}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">
                     {post.publicationDate
                       ? new Date(post.publicationDate).toLocaleString('es-ES', {
                           year: 'numeric',
@@ -765,14 +842,23 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                         })
                       : ''}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {post.contentFormat}
+                  <td className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap px-4 py-4">
+                    {post.description || 'No aplica'}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    {post.creatorAccount}
+                    {post.postEngagement
+                      ? `${(post.postEngagement * 100).toFixed(2)}%`
+                      : 'N/A'}
                   </td>
-                  <td className="whitespace-normal px-4 py-4">
-                    {post.content_topics && post.content_topics.length > 0 && Array.isArray(post.content_topics) ? (
+                  <td className="whitespace-nowrap px-4 py-4">
+                    {post.outliers
+                      ? `${parseFloat(post.outliers).toFixed(2)}X`
+                      : ''}
+                  </td>
+                  {/* <td className="whitespace-normal px-4 py-4">
+                    {post.content_topics &&
+                    post.content_topics.length > 0 &&
+                    Array.isArray(post.content_topics) ? (
                       <div className="flex flex-wrap gap-2">
                         {post.content_topics.map((topic, index) => (
                           <span
@@ -786,9 +872,8 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                     ) : (
                       <span className="text-sm text-gray-500">No aplica</span>
                     )}
-                  </td>
+                  </td> 
 
-                  {/* Celda para content_objectives con badges individuales */}
                   <td className="whitespace-normal px-4 py-4">
                     {post.content_objectives &&
                     post.content_objectives.length > 0 &&
@@ -808,9 +893,6 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                     )}
                   </td>
                   <td className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap px-4 py-4">
-                    {post.description || 'No aplica'}
-                  </td>
-                  <td className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap px-4 py-4">
                     {post.videoTranscript
                       ? post.videoTranscript
                       : 'Sin transcripción'}
@@ -818,9 +900,11 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                   <td className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap px-4 py-4">
                     {post.scriptAdaptation || 'No aplica'}
                   </td>
+                  */}
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center space-x-2">
-                      {post.content_objectives && post.content_objectives.length > 0 ? (
+                      {post.content_objectives &&
+                      post.content_objectives.length > 0 ? (
                         // Si ya tiene objetivo, mostrar botón de visualización
                         <button
                           onClick={() => openPostModal(post)}

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { X, ChevronDown, ChevronUp, Edit, Sparkles, Check } from 'lucide-react'
-import { toast } from 'react-toastify'
-import transcribeService from '../../../services/transcribe.service'
-import businessPostService from '../../../services/business-post.service'
+import { X, 
+  ChevronDown, 
+  ChevronUp} from 'lucide-react'
+//import { toast } from 'react-toastify'
+//import transcribeService from '../../../services/transcribe.service'
+//import businessPostService from '../../../services/business-post.service'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
 import { Post } from '../../pages/content-planner/interfaces/content-planner'
-import postService from '../../../services/post.service'
+//import postService from '../../../services/post.service'
 
 // Definición de tipos
 export type PostStatus = 'APPROVED'
@@ -24,21 +26,22 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
   post,
   closeModal,
   isOpen,
-  loadPosts,
+  //loadPosts,
 }) => {
-  const [isTranscribing, setIsTranscribing] = useState<boolean>(false)
+  //const [isTranscribing, setIsTranscribing] = useState<boolean>(false)
   const [captionExpanded, setCaptionExpanded] = useState<boolean>(true)
   const [transcriptionExpanded, setTranscriptionExpanded] =
     useState<boolean>(false)
   const [analysisExpanded, setAnalysisExpanded] = useState<boolean>(false)
-  const [contentAnalysisExpanded, setContentAnalysisExpanded] = useState<boolean>(false)
-  
+  const [contentAnalysisExpanded, setContentAnalysisExpanded] =
+    useState<boolean>(false)
+
   // Estados para la edición
-  const [isEditingAdaptation, setIsEditingAdaptation] = useState<boolean>(false)
-  const [isEditingCaption, setIsEditingCaption] = useState<boolean>(false)
-  const [adaptationText, setAdaptationText] = useState<string>('')
-  const [captionText, setCaptionText] = useState<string>('')
-  const [isProcessing, setIsProcessing] = useState<boolean>(false)
+  //const [isEditingAdaptation, setIsEditingAdaptation] = useState<boolean>(false)
+  //const [isEditingCaption, setIsEditingCaption] = useState<boolean>(false)
+  //const [adaptationText, setAdaptationText] = useState<string>('')
+  //const [captionText, setCaptionText] = useState<string>('')
+  //const [isProcessing, setIsProcessing] = useState<boolean>(false)
   const [currentPost, setCurrentPost] = useState<Post | null>(post)
 
   useEffect(() => {
@@ -56,8 +59,8 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     // Inicializar los campos de texto con los datos del post
     if (post) {
       setCurrentPost(post)
-      setAdaptationText(post.content_adapter || '')
-      setCaptionText(post.caption || '')
+      //setAdaptationText(post.content_adapter || '')
+      //setCaptionText(post.caption || '')
     }
   }, [post])
 
@@ -74,18 +77,18 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     })
   }
 
-  const reloadPost = async () => {
+  /*const reloadPost = async () => {
     if (!currentPost || !currentPost.id) return
 
     try {
       // Obtener datos actualizados del post
       const updatedPost = await postService.getPostById(currentPost.id)
-      
+
       // Actualizar el estado con los nuevos datos
       setCurrentPost(updatedPost)
-      
+
       // Actualizar los campos de texto con la información actualizada
-      setAdaptationText(updatedPost.content_adapter || '')
+      //setAdaptationText(updatedPost.content_adapter || '')
       setCaptionText(updatedPost.caption || '')
     } catch (error) {
       console.error('Error al recargar la información del post:', error)
@@ -93,8 +96,13 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     }
   }
 
-  const handleTranscribe = async (): Promise<void> => {
-    if (!currentPost || !currentPost.mediaURL || typeof currentPost.mediaURL !== 'string') return
+ const handleTranscribe = async (): Promise<void> => {
+    if (
+      !currentPost ||
+      !currentPost.mediaURL ||
+      typeof currentPost.mediaURL !== 'string'
+    )
+      return
 
     try {
       setIsTranscribing(true)
@@ -105,7 +113,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
       await transcribeService.transcribe(currentPost.id, currentPost.mediaURL)
 
       toast.success('La transcripción ha sido iniciada exitosamente')
-      
+
       // Recargar la información del post después de la transcripción
       await reloadPost()
     } catch (error) {
@@ -122,27 +130,32 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
       toast.error('No se pudo identificar el post')
       return
     }
-    
+
     try {
       setIsProcessing(true)
-      
-      await businessPostService.updateContentAdapter(currentPost.businessPostId, {
-        description: currentPost.description || '',
-        brand_tone_business: currentPost.brand_tone_business || '',
-        target_audience_business: currentPost.target_audience_business || '', 
-        objective: currentPost.content_objectives || [],
-        contentFormat: currentPost.contentFormat || '',
-        content_topics: currentPost.content_topics || [],
-        pain_or_desire: [currentPost.pain_or_desire || { pain: '', desire: '' }],
-        content_adapter: adaptationText,
-        use_ai: false
-      })
-      
+
+      await businessPostService.updateContentAdapter(
+        currentPost.businessPostId,
+        {
+          description: currentPost.description || '',
+          brand_tone_business: currentPost.brand_tone_business || '',
+          target_audience_business: currentPost.target_audience_business || '',
+          objective: currentPost.content_objectives || [],
+          contentFormat: currentPost.contentFormat || '',
+          content_topics: currentPost.content_topics || [],
+          pain_or_desire: [
+            currentPost.pain_or_desire || { pain: '', desire: '' },
+          ],
+          content_adapter: adaptationText,
+          use_ai: false,
+        }
+      )
+
       setIsEditingAdaptation(false)
       toast.success('Adaptación guardada correctamente')
       closeModal()
       loadPosts()
-      
+
       // Recargar la información del post
       await reloadPost()
     } catch (error) {
@@ -151,30 +164,38 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     } finally {
       setIsProcessing(false)
     }
-  }
+  } 
 
   const handleGenerateAIAdaptation = async () => {
     if (!currentPost || !currentPost.businessPostId) {
       toast.error('No se pudo identificar el post')
       return
     }
-    
+
     try {
       setIsProcessing(true)
       toast.info('Generando adaptación con IA...')
-      
-      await businessPostService.updateContentAdapter(currentPost.businessPostId, {
-        description: currentPost.description || '',
-        brand_tone_business: currentPost.brand_tone_business || '',
-        target_audience_business: currentPost.target_audience_business || '',
-        objective: currentPost.content_objectives || [],
-        contentFormat: currentPost.contentFormat || '',
-        content_topics: currentPost.content_topics || [],
-        pain_or_desire: [currentPost.pain_or_desire || { pain: '', desire: '' }],
-        use_ai: true,
-        video_transcription: currentPost.contentFormat === 'VIDEO' ? currentPost.videoTranscript || '' : ''
-      })
-      
+
+      await businessPostService.updateContentAdapter(
+        currentPost.businessPostId,
+        {
+          description: currentPost.description || '',
+          brand_tone_business: currentPost.brand_tone_business || '',
+          target_audience_business: currentPost.target_audience_business || '',
+          objective: currentPost.content_objectives || [],
+          contentFormat: currentPost.contentFormat || '',
+          content_topics: currentPost.content_topics || [],
+          pain_or_desire: [
+            currentPost.pain_or_desire || { pain: '', desire: '' },
+          ],
+          use_ai: true,
+          video_transcription:
+            currentPost.contentFormat === 'VIDEO'
+              ? currentPost.videoTranscript || ''
+              : '',
+        }
+      )
+
       toast.success('Adaptación con IA generada correctamente')
       closeModal()
       loadPosts()
@@ -192,15 +213,15 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
       toast.error('No se pudo identificar el post')
       return
     }
-    
+
     try {
       setIsProcessing(true)
-      
+
       // Aquí implementaríamos la lógica para guardar el caption
       // Por ahora solo indicamos éxito
       setIsEditingCaption(false)
       toast.success('Caption optimizado guardado correctamente')
-      
+
       // Recargar la información del post
       await reloadPost()
     } catch (error) {
@@ -216,15 +237,12 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
       toast.error('No se pudo identificar el post')
       return
     }
-    
+
     try {
       setIsProcessing(true)
       toast.info('Generando caption con IA...')
-      
-      // Aquí implementaríamos la lógica para generar el caption con IA
-      // Por ahora solo indicamos éxito
       toast.success('Caption generado con IA correctamente')
-      
+
       // Recargar la información del post
       await reloadPost()
     } catch (error) {
@@ -235,10 +253,9 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     }
   }
 
-  const handleEditAdaptation = () => {
-    setIsEditingAdaptation(true);
-    // El focus automático ocurrirá al renderizar sin necesidad de useEffect
-  };
+   const handleEditAdaptation = () => {
+    setIsEditingAdaptation(true)
+  } */
 
   if (!currentPost || !isOpen) return null
   const {
@@ -251,7 +268,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     postURL,
     description,
     publicationDate,
-    videoTranscript,
+    //videoTranscript,
     status,
     carousel_items,
     global_content_analysis,
@@ -260,8 +277,8 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     narrative_structure,
     call_to_action,
     downloadable_type,
-    content_adapter,
-    content_objectives,
+    //content_adapter,
+    //content_objectives,
   } = currentPost
 
   // Valor fijo para engagement de demostración
@@ -425,16 +442,14 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
 
           {/* Content - Two Column Layout */}
           <div className="max-h-[calc(100vh-200px)] overflow-y-auto px-4 pb-4">
-
-            <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
-              {/* Título del contenido */}
+            {/* <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
               <h1 className="mb-4 text-lg font-semibold">
                   {hook}
               </h1>
-            </div>
+            </div> */}
 
             {/* Tags */}
-            <div className="mb-4 flex flex-wrap gap-2">
+            {/*  <div className="mb-4 flex flex-wrap gap-2">
               {Array.isArray(content_objectives) && content_objectives.length > 0 ? (
                 content_objectives.map((objective, index) => (
                   <span 
@@ -450,16 +465,14 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
               ) : (
                 <span className="text-sm text-gray-500">No aplica</span>
               )}
-            </div>
+            </div> */}
             {/* Author info */}
             <div className="mb-6 flex items-center">
               <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 text-yellow-800">
                 👤
               </div>
               <div>
-                <div className="font-medium">
-                  @{creatorAccount || ''}
-                </div>
+                <div className="font-medium">@{creatorAccount || ''}</div>
                 <div className="text-xs text-gray-500">
                   {formatDate(publicationDate) || ''}
                 </div>
@@ -526,14 +539,14 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                       Ver en Instagram
                     </a>
                     {/* Notas */}
-                    <div className="mb-4 mt-6">
+                 {/*    <div className="mb-4 mt-6">
                       <h3 className="mb-2 text-sm font-medium">Notas</h3>
                       <textarea
                         className="w-full rounded-md border border-gray-300 p-3"
                         rows={3}
                         placeholder="Añadir notas sobre este contenido..."
                       ></textarea>
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </div>
@@ -546,10 +559,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                   expanded={captionExpanded}
                   setExpanded={setCaptionExpanded}
                 >
-                  <p>
-                    {description ||
-                      'No aplica'}
-                  </p>
+                  <p>{description || 'No aplica'}</p>
                 </CollapsibleSection>
 
                 {contentFormat === 'VIDEO' && (
@@ -559,7 +569,18 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                     setExpanded={setTranscriptionExpanded}
                     icon={<span className="text-gray-600">📝</span>}
                   >
-                    {videoTranscript ? (
+                    {/* Mensaje informativo sobre funcionalidad en desarrollo */}
+                    <div className="mb-4 rounded-lg bg-yellow-100 p-3 text-yellow-800">
+                      <p className="font-bold">¡Alto ahí cazador!</p>
+                      <p>
+                        Nuestro equipo está trabajando en terminar de
+                        desarrollar esta función, por el momento no está
+                        habilitada, pero tan pronto lo esté serás el primero en
+                        obtenerla.
+                      </p>
+                    </div>
+
+                    {/* {videoTranscript ? (
                       <p>{videoTranscript}</p>
                     ) : (
                       <div className="space-y-2">
@@ -578,7 +599,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                           </button>
                         )}
                       </div>
-                    )}
+                    )} */}
                   </CollapsibleSection>
                 )}
 
@@ -589,6 +610,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                   icon={<span className="text-gray-600">📊</span>}
                 >
                   <div className="space-y-4">
+                   
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <h4 className="font-medium">Hook</h4>
@@ -611,7 +633,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                     </div>
 
                     <div>
-                      <h4 className="font-medium">Dolor/Deseo Abordado</h4>
+                      <h4 className="font-medium">Dolor/Deseo Abordado</h4>  
                       {pain_or_desire.desire && (
                         <p className="text-sm text-gray-600">
                           <span className="font-medium">Deseo:</span> {pain_or_desire.desire}
@@ -638,21 +660,31 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                   icon={<span className="text-gray-600">📊</span>}
                 >
                   <div className="space-y-4">
-                    <div>
+                     {/* Mensaje informativo sobre funcionalidad en desarrollo */}
+                     <div className="mb-4 rounded-lg bg-yellow-100 p-3 text-yellow-800">
+                      <p className="font-bold">¡Alto ahí cazador!</p>
+                      <p>
+                        Nuestro equipo está trabajando en terminar de
+                        desarrollar esta función, por el momento no está
+                        habilitada, pero tan pronto lo esté serás el primero en
+                        obtenerla.
+                      </p>
+                    </div>
+                    {/* <div>
                       <h4 className="mb-2 text-sm font-medium">Adaptación</h4>
                       <div className="flex items-center justify-between rounded-md bg-gray-50 p-3">
                         {isEditingAdaptation ? (
                           <textarea
-                            className="w-full p-2 border rounded-md"
+                            className="w-full rounded-md border p-2"
                             value={adaptationText}
                             onChange={(e) => setAdaptationText(e.target.value)}
                             rows={4}
                             autoFocus
                             onFocus={(e) => {
                               // Asegurar que el cursor se posicione al final
-                              const val = e.target.value;
-                              e.target.value = '';
-                              e.target.value = val;
+                              const val = e.target.value
+                              e.target.value = ''
+                              e.target.value = val
                             }}
                           />
                         ) : (
@@ -660,17 +692,17 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                             {content_adapter || 'No hay adaptación disponible'}
                           </div>
                         )}
-                        <div className="flex space-x-2 ml-2">
+                        <div className="ml-2 flex space-x-2">
                           {isEditingAdaptation ? (
-                            <button 
+                            <button
                               onClick={handleSaveAdaptation}
-                              className="rounded border border-green-300 p-1 text-green-600 hover:text-green-900 bg-green-50"
+                              className="rounded border border-green-300 bg-green-50 p-1 text-green-600 hover:text-green-900"
                               disabled={isProcessing}
                             >
                               <Check size={14} />
                             </button>
                           ) : (
-                            <button 
+                            <button
                               onClick={handleEditAdaptation}
                               className="rounded border border-gray-300 p-1 text-gray-600 hover:text-gray-900"
                               disabled={isProcessing}
@@ -678,7 +710,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                               <Edit size={14} />
                             </button>
                           )}
-                          <button 
+                          <button
                             onClick={handleGenerateAIAdaptation}
                             className="rounded border border-gray-300 p-1 text-gray-600 hover:text-gray-900"
                             disabled={isProcessing}
@@ -695,34 +727,35 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                       <div className="flex items-center justify-between rounded-md bg-gray-50 p-3">
                         {isEditingCaption ? (
                           <textarea
-                            className="w-full p-2 border rounded-md"
+                            className="w-full rounded-md border p-2"
                             value={captionText}
                             onChange={(e) => setCaptionText(e.target.value)}
                             rows={4}
                             autoFocus
                             onFocus={(e) => {
                               // Asegurar que el cursor se posicione al final
-                              const val = e.target.value;
-                              e.target.value = '';
-                              e.target.value = val;
+                              const val = e.target.value
+                              e.target.value = ''
+                              e.target.value = val
                             }}
                           />
                         ) : (
                           <div className="text-sm">
-                            {captionText || 'No hay caption optimizado disponible'}
+                            {captionText ||
+                              'No hay caption optimizado disponible'}
                           </div>
                         )}
-                        <div className="flex space-x-2 ml-2">
+                        <div className="ml-2 flex space-x-2">
                           {isEditingCaption ? (
-                            <button 
+                            <button
                               onClick={handleSaveCaption}
-                              className="rounded border border-green-300 p-1 text-green-600 hover:text-green-900 bg-green-50"
+                              className="rounded border border-green-300 bg-green-50 p-1 text-green-600 hover:text-green-900"
                               disabled={isProcessing}
                             >
                               <Check size={14} />
                             </button>
                           ) : (
-                            <button 
+                            <button
                               onClick={() => setIsEditingCaption(true)}
                               className="rounded border border-gray-300 p-1 text-gray-600 hover:text-gray-900"
                               disabled={isProcessing}
@@ -730,7 +763,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                               <Edit size={14} />
                             </button>
                           )}
-                          <button 
+                          <button
                             onClick={handleGenerateAICaption}
                             className="rounded border border-gray-300 p-1 text-gray-600 hover:text-gray-900"
                             disabled={isProcessing}
@@ -780,7 +813,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div>*/}
                   </div>
                 </CollapsibleSection>
               </div>

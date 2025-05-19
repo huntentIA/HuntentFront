@@ -1,4 +1,4 @@
-import { NavLink} from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 /* import BussinessService from '../../../services/business.service'
 import { BusinessesAccountResponse } from '../../../services/interfaces/business-service'
 import { getBusinessAccountsByIdResponse } from '../../../services/interfaces/business-account-service'
@@ -34,41 +34,52 @@ const Sidebar: React.FC<SidebarProps> = ({ isDarkMode, isOpen }) => {
           </h3>
           <ul className="space-y-2">
             <SidebarItem
-              to="/userAccount"
-              icon={<Users size={20} />}
-              label="Directorio de referentes"
-              isDarkMode={isDarkMode}
-            />
-            <SidebarItem
               to="/knowledgeBaseView"
               icon={<HardDrive size={20} />}
               label="Base de Conocimiento"
               isDarkMode={isDarkMode}
             />
+            <SidebarItem
+              to="/userAccount"
+              icon={<Users size={20} />}
+              label="Directorio de referentes"
+              isDarkMode={isDarkMode}
+            />
           </ul>
         </div>
 
-        <div>
+        <div className="mb-8">
           <h3
             className={`${
               isDarkMode ? 'text-gray-400' : 'text-gray-500'
             } mb-3 text-xs font-medium uppercase`}
           >
-            Planificación
+            Cazadores
           </h3>
           <ul className="space-y-2">
             <SidebarItem
               to="/referentSearch"
               icon={<HardDrive size={20} />}
-              label="Selección Cuentas"
+              label="Cazador de Referentes"
               isDarkMode={isDarkMode}
             />
             <SidebarItem
               to="/contentPlanner"
               icon={<Brain size={20} />}
-              label="Planificador de Contenido"
+              label="Cazador de Contenido"
               isDarkMode={isDarkMode}
             />
+          </ul>
+        </div>
+        <div className="mb-8">
+          <h3
+            className={`${
+              isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            } mb-3 text-xs font-medium uppercase`}
+          >
+            Aprobación
+          </h3>
+          <ul className="space-y-2">
             <SidebarItem
               to="/approveContentPlanner"
               icon={<Check size={20} />}
