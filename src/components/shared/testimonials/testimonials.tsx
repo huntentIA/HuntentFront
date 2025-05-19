@@ -25,6 +25,15 @@ const testimonials: Testimonial[] = [
   },
 ]
 
+// Función para obtener las iniciales de un nombre
+const getInitials = (name: string): string => {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+}
+
 const Testimonials: React.FC = () => {
   return (
     <section className={styles.container}>
@@ -32,11 +41,33 @@ const Testimonials: React.FC = () => {
       <div className={styles.grid}>
         {testimonials.map((testimonial, index) => (
           <div key={index} className={styles.card}>
-            <img
-              src={testimonial.image}
-              alt={testimonial.name}
-              className={styles.image}
-            />
+            <div className={styles.avatarContainer}>
+              {testimonial.image ? (
+                <img
+                  src={testimonial.image}
+                  alt={testimonial.name}
+                  className={styles.image}
+                  onError={(e) => {
+                    // Cuando hay error en la carga de la imagen, oculta la imagen
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    // Muestra el contenedor de iniciales
+                    const parent = (e.target as HTMLImageElement).parentElement;
+                    if (parent) {
+                      const initialsEl = parent.querySelector(`.${styles.initials}`);
+                      if (initialsEl) {
+                        (initialsEl as HTMLElement).style.display = 'flex';
+                      }
+                    }
+                  }}
+                />
+              ) : null}
+              <div 
+                className={styles.initials} 
+                style={{ display: testimonial.image ? 'none' : 'flex' }}
+              >
+                {getInitials(testimonial.name)}
+              </div>
+            </div>
             <p className={styles.message}>"{testimonial.message}"</p>
             <h3 className={styles.name}>{testimonial.name}</h3>
             <span className={styles.role}>{testimonial.role}</span>

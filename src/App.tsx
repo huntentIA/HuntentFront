@@ -51,10 +51,22 @@ function App() {
   const handleLogin = (): void => {
     setIsAuthenticated(true)
     localStorage.setItem('isAuthenticated', 'true');
+    
+    // Cargar el nombre del negocio para el usuario que inició sesión
+    const userDataString = localStorage.getItem('userData')
+    if (userDataString) {
+      const user = JSON.parse(userDataString) as User
+      BussinessService.getBusinessIdByUserId(user.id).then((business) => {
+        if (business && business.length > 0) {
+          setBusinessName(business[0].businessName)
+        }
+      })
+    }
   }
 
   const handleLogout = (): void => {
     setIsAuthenticated(false)
+    setBusinessName('')
     localStorage.removeItem('isAuthenticated')
     localStorage.removeItem('businessData')
     localStorage.removeItem('userData')

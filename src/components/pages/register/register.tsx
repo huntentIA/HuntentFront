@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, ChangeEvent, FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { User, Mail, Lock, EyeOff, Eye } from 'lucide-react'
@@ -254,7 +253,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ isDarkMode}) => {
           <p className="mt-6 text-center text-gray-600 dark:text-gray-400">
             ¿Ya tienes una cuenta?{' '}
             <Link to="/" className="text-orange-500 hover:text-orange-600">
-              Inicia sesión
+              Ir a iniciar sesión
             </Link>
           </p>
         </div>
