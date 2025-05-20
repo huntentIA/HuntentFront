@@ -34,15 +34,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isDarkMode, isOpen }) => {
           </h3>
           <ul className="space-y-2">
             <SidebarItem
-              to="/knowledgeBaseView"
-              icon={<HardDrive size={20} />}
-              label="Base de Conocimiento"
-              isDarkMode={isDarkMode}
-            />
-            <SidebarItem
               to="/userAccount"
               icon={<Users size={20} />}
               label="Directorio de referentes"
+              isDarkMode={isDarkMode}
+            />
+            <SidebarItem
+              to="/knowledgeBaseView"
+              icon={<HardDrive size={20} />}
+              label="Base de Conocimiento"
               isDarkMode={isDarkMode}
             />
           </ul>
@@ -69,17 +69,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isDarkMode, isOpen }) => {
               label="Cazador de Contenido"
               isDarkMode={isDarkMode}
             />
-          </ul>
-        </div>
-        <div className="mb-8">
-          <h3
-            className={`${
-              isDarkMode ? 'text-gray-400' : 'text-gray-500'
-            } mb-3 text-xs font-medium uppercase`}
-          >
-            Aprobación
-          </h3>
-          <ul className="space-y-2">
             <SidebarItem
               to="/approveContentPlanner"
               icon={<Check size={20} />}

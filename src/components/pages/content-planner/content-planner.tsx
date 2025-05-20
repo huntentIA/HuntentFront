@@ -293,12 +293,14 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
+  // Función para manejar la aprobación o rechazo de un post
   const handleApproval = async (postId: string, status: string, publicationDate: Date) => {
     setLoading(true)
     try {
       // Buscar el post actual en la lista de posts
       const currentPost = posts.find(post => post.id === postId)
 
+      /* Comentado temporalmente la validación de transcripción de videos
       if (status === 'approved') {  
         if (currentPost && currentPost.contentFormat === 'VIDEO' && !currentPost.videoTranscript) {
           toast.warning('Es necesario transcribir el video antes de aprobarlo.');
@@ -306,6 +308,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
           return;
         }
       }
+      */
       
       const newStatus = status === 'approved' ? 'APPROVED' : 'REJECTED'
       const businessPostData: BusinessPostDataCreate = {
@@ -316,14 +319,12 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         contentFormat: currentPost?.contentFormat || '',
       }
 
-      //const success = await postService.updatePostStatus(postId, newStatus)
       const success = await businessPostService.createBusinessPost(businessPostData)
       if (success) {
         toast.success(
           `El post ha sido ${status === 'approved' ? 'aprobado' : 'rechazado'}.`
         )
         
-        // Recargar los posts después de aprobar/rechazar para actualizar la lista
         await loadPosts(currentPage)
       } else {
         toast.error(
@@ -485,7 +486,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     } h-auto w-full min-h-screen`}
     >
       <h1 className="mb-8 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-center text-4xl font-bold text-transparent">
-        Planificador de Contenido
+        Cazador de Contenido
       </h1>
 
       {/* Total de publicaciones */}
@@ -708,17 +709,18 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                     )}
                     {post.contentFormat === 'VIDEO' && (
                       <div className="relative h-16 w-16">
+                        {/* Componente de video con previsualización */}
                         <video
                           src={post.mediaURL}
                           className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
                           preload="metadata"
                           muted
                           onLoadedMetadata={(e) => {
-                            // Intentamos mover el cursor al primer frame
+                            // Intentamos mover el cursor al primer frame para mostrar la miniatura
                             ;(e.target as HTMLVideoElement).currentTime = 0
                           }}
                           onError={(e) => {
-                            // Si hay error al cargar el video, mostramos un fallback
+                            // Fallback visual si hay error al cargar el video
                             const fallbackContainer = (
                               e.target as HTMLVideoElement
                             ).parentElement
@@ -734,6 +736,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                             }
                           }}
                         />
+                        {/* Overlay con icono de video */}
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
                           <Video className="h-6 w-6 text-white" />
                         </div>
@@ -795,6 +798,9 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                               ? 'bg-green-600 hover:bg-green-700'
                               : 'bg-green-500 hover:bg-green-600'
                           } text-white`}
+                          /* Comentado temporalmente la deshabilitación del botón para videos sin transcripción
+                          disabled={post.contentFormat === 'VIDEO' && !post.videoTranscript}
+                          */
                         >
                           <Check size={16} />
                         </button>

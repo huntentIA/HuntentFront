@@ -7,7 +7,6 @@ import {
   Video,
   Info,
   Download,
-  BarChart2,
 } from 'lucide-react'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -18,13 +17,14 @@ import {
 } from './interfaces/approve-content-planner'
 import PostAprovedModal from '../../shared/post-modal/postAprovedModal'
 import businessPostService from '../../../services/business-post.service'
-import { ContentAnalysisData } from '../../../services/interfaces/business-post-service'
+// import { ContentAnalysisData } from '../../../services/interfaces/business-post-service'
 import businessAccountService from '../../../services/business-account.service'
 import BussinessService from '../../../services/business.service'
 import { getBusinessAccountsByIdResponse } from '../../../services/interfaces/business-account-service'
 import CustomMultiSelect from '../../shared/multiselect/multiselect'
 import { tooltipDescriptions } from '../../../utils/toolDescriptions'
 import { BusinessesAccountResponse } from '../../../services/interfaces/business-service'
+
 interface UserData {
   id: string
   // Otros campos de usuario
@@ -74,9 +74,9 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   const [availableCreators, setAvailableCreators] = useState<
     { id: string; accountName: string }[]
   >([])
-  const [analysisLoading, setAnalysisLoading] = useState<{
+/*   const [analysisLoading, setAnalysisLoading] = useState<{
     [key: string]: boolean
-  }>({})
+  }>({}) */
 
   const columnNames = {
     contentFormat: 'Formato',
@@ -517,7 +517,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
-  const handleContentAnalysis = async (post: Post) => {
+/*   const handleContentAnalysis = async (post: Post) => {
     try {
       setAnalysisLoading((prev) => ({ ...prev, [post.id]: true }))
 
@@ -580,7 +580,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     } finally {
       setAnalysisLoading((prev) => ({ ...prev, [post.id]: false }))
     }
-  }
+  } */
 
   if (loading && posts.length === 0) {
     return <div>Cargando...</div>
@@ -680,7 +680,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
           } text-white transition-colors`}
         >
           <Download size={20} />
-          {loading ? 'Generando...' : 'Generar Excel'}
+          {loading ? 'Generando...' : 'Exportar Parrilla'}
         </button>
       </div>
 
@@ -903,6 +903,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                   */}
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center space-x-2">
+                      {/* Comentado temporalmente la lógica de análisis de contenido
                       {post.content_objectives &&
                       post.content_objectives.length > 0 ? (
                         // Si ya tiene objetivo, mostrar botón de visualización
@@ -934,6 +935,19 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                           )}
                         </button>
                       )}
+                      */}
+                      
+                      {/* Solo mostramos el botón de visualización */}
+                      <button
+                        onClick={() => openPostModal(post)}
+                        className={`rounded-md p-2 ${
+                          isDarkMode
+                            ? 'bg-gray-600 hover:bg-gray-700'
+                            : 'bg-gray-500 hover:bg-gray-600'
+                        } text-white`}
+                      >
+                        <Eye size={16} />
+                      </button>
                     </div>
                   </td>
                 </tr>

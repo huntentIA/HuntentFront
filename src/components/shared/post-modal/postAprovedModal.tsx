@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { X, 
-  ChevronDown, 
-  ChevronUp} from 'lucide-react'
+import { X, ChevronDown, ChevronUp } from 'lucide-react'
 //import { toast } from 'react-toastify'
 //import transcribeService from '../../../services/transcribe.service'
 //import businessPostService from '../../../services/business-post.service'
@@ -266,17 +264,17 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     likes,
     comments,
     postURL,
-    description,
+    //description,
     publicationDate,
     //videoTranscript,
     status,
     carousel_items,
-    global_content_analysis,
-    hook,
-    pain_or_desire,
-    narrative_structure,
-    call_to_action,
-    downloadable_type,
+    //global_content_analysis,
+    //hook,
+    //pain_or_desire,
+    //narrative_structure,
+    //call_to_action,
+    //downloadable_type,
     //content_adapter,
     //content_objectives,
   } = currentPost
@@ -539,7 +537,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                       Ver en Instagram
                     </a>
                     {/* Notas */}
-                 {/*    <div className="mb-4 mt-6">
+                    {/*    <div className="mb-4 mt-6">
                       <h3 className="mb-2 text-sm font-medium">Notas</h3>
                       <textarea
                         className="w-full rounded-md border border-gray-300 p-3"
@@ -559,7 +557,15 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                   expanded={captionExpanded}
                   setExpanded={setCaptionExpanded}
                 >
-                  <p>{description || 'No aplica'}</p>
+                  <div className="mb-4 rounded-lg bg-yellow-100 p-3 text-yellow-800">
+                    <p className="font-bold">¡Alto ahí cazador!</p>
+                    <p>
+                      Nuestro equipo está trabajando en terminar de desarrollar
+                      esta función, por el momento no está habilitada, pero tan
+                      pronto lo esté serás el primero en obtenerla.
+                    </p>
+                  </div>
+                  {/* <p>{description || 'No aplica'}</p> */}
                 </CollapsibleSection>
 
                 {contentFormat === 'VIDEO' && (
@@ -610,8 +616,17 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                   icon={<span className="text-gray-600">📊</span>}
                 >
                   <div className="space-y-4">
-                   
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="mb-4 rounded-lg bg-yellow-100 p-3 text-yellow-800">
+                      <p className="font-bold">¡Alto ahí cazador!</p>
+                      <p>
+                        Nuestro equipo está trabajando en terminar de
+                        desarrollar esta función, por el momento no está
+                        habilitada, pero tan pronto lo esté serás el primero en
+                        obtenerla.
+                      </p>
+                    </div>
+
+                    {/* <div className="grid grid-cols-2 gap-4">
                       <div>
                         <h4 className="font-medium">Hook</h4>
                         <p className="text-sm text-gray-600">{hook}</p>
@@ -649,7 +664,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                     <div>
                       <h4 className="font-medium">Análisis del Contenido</h4>
                       <p className="text-sm text-gray-600">{global_content_analysis}</p>
-                    </div>
+                    </div> */}
                   </div>
                 </CollapsibleSection>
 
@@ -660,8 +675,8 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                   icon={<span className="text-gray-600">📊</span>}
                 >
                   <div className="space-y-4">
-                     {/* Mensaje informativo sobre funcionalidad en desarrollo */}
-                     <div className="mb-4 rounded-lg bg-yellow-100 p-3 text-yellow-800">
+                    {/* Mensaje informativo sobre funcionalidad en desarrollo */}
+                    <div className="mb-4 rounded-lg bg-yellow-100 p-3 text-yellow-800">
                       <p className="font-bold">¡Alto ahí cazador!</p>
                       <p>
                         Nuestro equipo está trabajando en terminar de
