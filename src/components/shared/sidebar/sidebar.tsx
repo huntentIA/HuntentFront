@@ -30,19 +30,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isDarkMode, isOpen }) => {
               isDarkMode ? 'text-gray-400' : 'text-gray-500'
             } mb-3 text-xs font-medium uppercase`}
           >
-            Bases
+            Configuración
           </h3>
           <ul className="space-y-2">
-            <SidebarItem
-              to="/userAccount"
-              icon={<Users size={20} />}
-              label="Directorio de referentes"
-              isDarkMode={isDarkMode}
-            />
             <SidebarItem
               to="/knowledgeBaseView"
               icon={<HardDrive size={20} />}
               label="Base de Conocimiento"
+              isDarkMode={isDarkMode}
+            />
+            <SidebarItem
+              to="/referentSearch"
+              icon={<HardDrive size={20} />}
+              label="Cazador de Referentes"
               isDarkMode={isDarkMode}
             />
           </ul>
@@ -54,13 +54,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isDarkMode, isOpen }) => {
               isDarkMode ? 'text-gray-400' : 'text-gray-500'
             } mb-3 text-xs font-medium uppercase`}
           >
-            Cazadores
+            Planificación
           </h3>
           <ul className="space-y-2">
             <SidebarItem
-              to="/referentSearch"
-              icon={<HardDrive size={20} />}
-              label="Cazador de Referentes"
+              to="/userAccount"
+              icon={<Users size={20} />}
+              label="Directorio de referentes"
               isDarkMode={isDarkMode}
             />
             <SidebarItem
