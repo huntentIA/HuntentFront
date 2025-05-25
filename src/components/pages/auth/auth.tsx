@@ -60,19 +60,15 @@ const LoginPage: React.FC<LoginPageProps> = ({
 
     try {
       const user = await authService.login(LoginRequest)
-      console.log('Login successful:', user.id)
-
       try {
         localStorage.setItem('authProvider', 'local')
         const businesses = await BussinessService.getBusinessIdByUserId(
           user.id.toString()
         )
-        
+
         if (!businesses || businesses.length === 0) {
-          console.log('No businesses found, navigating to knowledgeBaseForm')
           navigate('/knowledgeBaseForm')
         } else {
-          console.log('Businesses found, navigating to referentSearch')
           onLogin(user)
           navigate('/referentSearch')
         }
@@ -104,7 +100,6 @@ const LoginPage: React.FC<LoginPageProps> = ({
 
       // Llamar al servicio de autenticación con Google
       const user = await authService.googleLogin(credentialResponse.credential)
-      console.log('Google login successful:', user)
 
       try {
         localStorage.setItem('authProvider', 'google')
@@ -113,14 +108,8 @@ const LoginPage: React.FC<LoginPageProps> = ({
         )
 
         if (!businesses || businesses.length === 0) {
-          console.log(
-            'Google login - No businesses found, navigating to knowledgeBaseForm'
-          )
           navigate('/knowledgeBaseForm')
         } else {
-          console.log(
-            'Google login - Businesses found, navigating to referentSearch'
-          )
           onLogin(user)
           navigate('/referentSearch')
         }

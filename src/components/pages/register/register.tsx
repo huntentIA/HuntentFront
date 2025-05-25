@@ -43,7 +43,7 @@ const Input: React.FC<InputProps> = ({ icon, ...props }) => (
   </div>
 )
 
-const RegisterPage: React.FC<RegisterPageProps> = ({ isDarkMode}) => {
+const RegisterPage: React.FC<RegisterPageProps> = ({ isDarkMode }) => {
   const [formData, setFormData] = useState<RegisterRequest>({
     name: '',
     email: '',
@@ -99,10 +99,8 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ isDarkMode}) => {
       if (!credentialResponse.credential) {
         throw new Error('No se recibió credencial')
       }
-
       // Llamar al servicio de autenticación con Google
       const user = await authService.googleLogin(credentialResponse.credential)
-      console.log('Google login successful:', user)
 
       localStorage.setItem('authProvider', 'google')
       localStorage.setItem('userData', JSON.stringify(user))

@@ -35,7 +35,6 @@ function App() {
       const user = JSON.parse(userDataString) as User
       // Comment out or remove the business fetching for now
       BussinessService.getBusinessIdByUserId(user.id).then((business) => {
-        console.log(business)
         if (business && business.length > 0) {
           setBusinessName(business[0].businessName) // Assuming 'name' is the correct property
         }

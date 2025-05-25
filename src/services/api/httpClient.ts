@@ -3,7 +3,6 @@ import axios from 'axios'
 const apiUrl = import.meta.env.VITE_API_HUNTENT_URL
 
 if (!apiUrl) {
-  console.log(import.meta.env)
   throw new Error('API_URL is not defined')
 }
 

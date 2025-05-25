@@ -297,19 +297,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   const handleApproval = async (postId: string, status: string, publicationDate: Date) => {
     setLoading(true)
     try {
-      // Buscar el post actual en la lista de posts
       const currentPost = posts.find(post => post.id === postId)
-
-      /* Comentado temporalmente la validación de transcripción de videos
-      if (status === 'approved') {  
-        if (currentPost && currentPost.contentFormat === 'VIDEO' && !currentPost.videoTranscript) {
-          toast.warning('Es necesario transcribir el video antes de aprobarlo.');
-          setLoading(false);
-          return;
-        }
-      }
-      */
-      
       const newStatus = status === 'approved' ? 'APPROVED' : 'REJECTED'
       const businessPostData: BusinessPostDataCreate = {
         postId: postId,
@@ -324,7 +312,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         toast.success(
           `El post ha sido ${status === 'approved' ? 'aprobado' : 'rechazado'}.`
         )
-        
         await loadPosts(currentPage)
       } else {
         toast.error(

@@ -288,9 +288,7 @@ const ReferentSearch: React.FC<ReferentSearchProps> = ({ isDarkMode }) => {
           businessId,
           accountId
         )
-      } else {
-        console.log('La cuenta ya existe, no es necesario crearla')
-      }
+      } 
     } catch (error) {
       console.error('Error creating business account:', error)
       throw error

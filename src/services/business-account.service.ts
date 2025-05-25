@@ -76,7 +76,6 @@ const businessAccountService = {
       const response = await httpClient.delete<DeleteBussinessAccountResponse>(
         `/api/business_account/${accountId}`
       )
-      console.log(response.data)
       return response.data
     } catch (error) {
       console.error('Error al eliminar la cuenta de negocios', error)

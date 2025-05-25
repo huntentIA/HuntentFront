@@ -1,6 +1,6 @@
 import { PainOrDesire } from "../../../../services/interfaces/business-post-service"
 
-export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'GENERATED'
 export type ContentFormat = 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM'
 export type SortDirection = 'asc' | 'desc'
 
@@ -9,7 +9,7 @@ export interface Post {
   accountID: string
   accountName?: string
   description: string
-  status: string
+  status: ApprovalStatus
   mediaURL: string
   publicationDate: string
   publicationTime: string

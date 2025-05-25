@@ -264,7 +264,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
     likes,
     comments,
     postURL,
-    //description,
+    description,
     publicationDate,
     //videoTranscript,
     status,
@@ -557,15 +557,7 @@ const PostAprovedModal: React.FC<PostAprovedModalProps> = ({
                   expanded={captionExpanded}
                   setExpanded={setCaptionExpanded}
                 >
-                  <div className="mb-4 rounded-lg bg-yellow-100 p-3 text-yellow-800">
-                    <p className="font-bold">¡Alto ahí cazador!</p>
-                    <p>
-                      Nuestro equipo está trabajando en terminar de desarrollar
-                      esta función, por el momento no está habilitada, pero tan
-                      pronto lo esté serás el primero en obtenerla.
-                    </p>
-                  </div>
-                  {/* <p>{description || 'No aplica'}</p> */}
+                  <p>{description || 'No aplica'}</p>
                 </CollapsibleSection>
 
                 {contentFormat === 'VIDEO' && (

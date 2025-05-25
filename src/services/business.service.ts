@@ -17,7 +17,6 @@ const BussinessService = {
       if (!data) {
         return null
       }
-      console.log(data)
       return data ? data : null
     } catch (error) {
       console.error('Error al obtener el negocio:', error)

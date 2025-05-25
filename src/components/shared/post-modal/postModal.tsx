@@ -21,16 +21,16 @@ interface PostModalProps {
 
 const PostModal: React.FC<PostModalProps> = ({ post, businessId, closeModal, isOpen }) => {
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false)
-  const [isTranscriptionRequired, setIsTranscriptionRequired] = useState<boolean>(false)
+  //const [isTranscriptionRequired, setIsTranscriptionRequired] = useState<boolean>(false)
 
-  useEffect(() => {
+/*   useEffect(() => {
     // Verificar si se requiere transcripción
     if (post && post.contentFormat === 'VIDEO' && !post.videoTranscript) {
       setIsTranscriptionRequired(true)
     } else {
       setIsTranscriptionRequired(false)
     }
-  }, [post])
+  }, [post]) */
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent): void => {
@@ -73,12 +73,12 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
 
   try {
 
-    if (status === 'APPROVED') {
+    /* if (status === 'APPROVED') {
       if(post.contentFormat === 'VIDEO' && !post.videoTranscript) {
         toast.warning('Es necesario transcribir el video antes de aprobarlo.');
         return;
       }
-    }
+    } */
     const newStatus = status === 'APPROVED' ? 'APPROVED' : 'REJECTED'
     const businessPostData: BusinessPostDataCreate = {
       postId: post.id,
@@ -119,7 +119,7 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
       await transcribeService.transcribe(post.id, post.mediaURL)
 
       toast.success('La transcripción ha sido iniciada exitosamente')
-      setIsTranscriptionRequired(false)
+      //setIsTranscriptionRequired(false)
     } catch (error) {
       toast.error('Error al iniciar la transcripción')
       console.error('Error en transcripción:', error)
@@ -385,19 +385,19 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
               <button
                 onClick={() => handleApproval(post, businessId, 'APPROVED')}
                 className="rounded-lg bg-green-500 px-6 py-2 text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={status === 'APPROVED' || isTranscriptionRequired}
+                /* disabled={status === 'APPROVED' || isTranscriptionRequired} */
+                disabled={status === 'APPROVED'}
               >
                 APROBAR
               </button>
             </div>
             )}
             
-            {/* Mostrar mensaje si se requiere transcripción */}
-            {isTranscriptionRequired && (
+            {/* {isTranscriptionRequired && (
               <div className="ml-4 text-sm text-orange-500">
                 Es necesario transcribir el video antes de aprobar.
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>

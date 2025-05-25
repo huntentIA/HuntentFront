@@ -74,7 +74,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   const [availableCreators, setAvailableCreators] = useState<
     { id: string; accountName: string }[]
   >([])
-/*   const [analysisLoading, setAnalysisLoading] = useState<{
+  /*   const [analysisLoading, setAnalysisLoading] = useState<{
     [key: string]: boolean
   }>({}) */
 
@@ -92,6 +92,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     totalInteractions: 'Interacciones Totales',
     postEngagement: 'Engagement',
     outliers: 'Outliers',
+    status: 'Estado',
   }
 
   // Cargar los accountIds al inicio
@@ -288,7 +289,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
         return {
           id: item.postId || '',
           accountID: item.accountId || '',
-          status: item.status || 'APPROVED',
+          status: item.status,
           mediaURL: item.mediaURL || '',
           publicationDate: item.publicationDate
             ? new Date(item.publicationDate).toISOString()
@@ -517,7 +518,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
-/*   const handleContentAnalysis = async (post: Post) => {
+  /*   const handleContentAnalysis = async (post: Post) => {
     try {
       setAnalysisLoading((prev) => ({ ...prev, [post.id]: true }))
 
@@ -706,6 +707,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                 'description',
                 'postEngagement',
                 'outliers',
+                'status',
                 /* 'topics',
                 'objective',
                 'transcript',
@@ -723,7 +725,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                     } group relative flex items-center justify-between`}
                   >
                     <div className="flex items-center">
-                      <span >
+                      <span>
                         {columnNames[column as keyof typeof columnNames]}
                       </span>
                       <div className="group relative ml-2">
@@ -855,6 +857,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                       ? `${parseFloat(post.outliers).toFixed(2)}X`
                       : ''}
                   </td>
+                  <td className="whitespace-nowrap px-4 py-4">{post.status}</td>
                   {/* <td className="whitespace-normal px-4 py-4">
                     {post.content_topics &&
                     post.content_topics.length > 0 &&
@@ -936,7 +939,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
                         </button>
                       )}
                       */}
-                      
+
                       {/* Solo mostramos el botón de visualización */}
                       <button
                         onClick={() => openPostModal(post)}
