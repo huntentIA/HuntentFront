@@ -193,6 +193,7 @@ const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
         }
 
         const response = await BussinessService.updateBusiness(updatedData)
+        console.log('Business updated successfully:', response)
         setIsEditing(false)
       }
     } catch (error) {
