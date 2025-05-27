@@ -1,0 +1,36 @@
+export interface Post {
+  id: string
+  accountID: string
+  status: string
+  mediaURL: string
+  publicationDate: string
+  publicationTime: string
+  publication_id: string
+  likes: number
+  comments: number
+  shares: number
+  saves: number
+  totalInteractions: number
+  postEngagement: number
+  hashtags: string[]
+  postURL: string
+  contentFormat: string
+  creatorAccount: string
+  description: string
+  outliers: string
+  carousel_items: string[]
+  businessPostId: string
+  content_adapter: string
+  content_objectives: string[]
+  content_topics: string[]
+  downloadable_type: boolean
+  global_content_analysis: string
+  hook: string
+  narrative_structure: string
+  pain_or_desire: string
+  videoTranscript: string
+  businessPostStatus: string
+  call_to_action: string
+  brand_tone_business: string
+  target_audience_business: string
+} 

@@ -37,6 +37,7 @@ export interface BusinessPostData {
   content_adapter?: string
   videoTranscript?: string
   businessPostStatus?: string
+  publication_id?: string
   id?: string
 }
 

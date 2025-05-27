@@ -10,11 +10,9 @@ import {
 } from 'lucide-react'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import {
-  Post,
-  SortConfig,
-  PostBusinessQueryParams,
-} from './interfaces/approve-content-planner'
+import { Post } from './interfaces/content-planner'
+import { SortConfig } from './interfaces/content-planner'
+import { BusinessPostQueryParams } from '../../../services/interfaces/business-post-service'
 import PostAprovedModal from '../../shared/post-modal/postAprovedModal'
 import businessPostService from '../../../services/business-post.service'
 // import { ContentAnalysisData } from '../../../services/interfaces/business-post-service'
@@ -211,7 +209,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
   }
 
   const buildQueryParams = (page = currentPage) => {
-    const params: PostBusinessQueryParams = {
+    const params: BusinessPostQueryParams = {
       limit: postsPerPage.toString(),
       page_number: page.toString(),
       businessId: businessId,
@@ -297,6 +295,7 @@ export const ApproveContentPlanner: React.FC<ContentPlannerProps> = ({
           publicationTime: item.publicationDate
             ? new Date(item.publicationDate).toTimeString()
             : '',
+          publication_id: item.publication_id || '',
           likes: item.likes || 0,
           comments: item.comments || 0,
           shares: item.shares || 0,
