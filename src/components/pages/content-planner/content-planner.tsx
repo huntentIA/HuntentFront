@@ -79,6 +79,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   }) */
 
   //const [showApplyButton, setShowApplyButton] = useState(false)
+  const [refreshingPosts, setRefreshingPosts] = useState<{ [key: string]: boolean }>({})
 
   const columnNames = {
     contentFormat: 'Formato del Contenido',
@@ -90,8 +91,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     outliers: 'Outliers',
     publicationDate: 'Fecha de Publicación',
   }
-
-
 
   // Cargar los accountIds al inicio
   useEffect(() => {
@@ -456,6 +455,64 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     return <p>{tooltip as string}</p>
   }
 
+  const handleRefreshPost = async (post: Post) => {
+    if (refreshingPosts[post.id]) return
+
+    setRefreshingPosts(prev => ({ ...prev, [post.id]: true }))
+    try {
+      // Primero obtenemos la información actualizada
+      const updatedPostData = await postService.getPost(post.creatorAccount, post.publication_id)
+      console.log('updatedPostData', updatedPostData)
+
+      // Si tenemos datos actualizados del post, los usamos
+      if (updatedPostData) {
+        const updatedPost: UpdatePost = {
+          id: post.id,
+          owner_account: post.creatorAccount,
+          publication_id: post.publication_id,
+          description: updatedPostData.description || '',
+          media_type: updatedPostData.media_type,
+          instagram_media_type: updatedPostData.media_type,
+          creation_date_and_time: updatedPostData.creation_date_and_time,
+          comments_count: updatedPostData.comments_count || 0,
+          likes_count: updatedPostData.likes_count || 0,
+          interactions_count: updatedPostData.interactions_count || 0,
+          permalink: updatedPostData.permalink || '',
+          hash_tags: updatedPostData.hash_tags || [],
+          media_url: updatedPostData.media_url || ''
+        }
+
+        await postService.updatePost(updatedPost)
+        toast.success('Publicación actualizada correctamente')
+        await loadPosts(currentPage)
+      } else {
+        toast.error('No se pudo actualizar la publicación')
+      }
+    } catch (error) {
+      console.error('Error al actualizar la publicación:', error)
+      toast.error('Error al actualizar la publicación')
+    } finally {
+      setRefreshingPosts(prev => ({ ...prev, [post.id]: false }))
+    }
+  }
+
+  // Agregar el event listener para el botón de refrescar
+  useEffect(() => {
+    const handleRefreshPostEvent = (event: CustomEvent) => {
+      const postId = event.detail
+      const postToRefresh = posts.find(p => p.id === postId)
+      if (postToRefresh) {
+        handleRefreshPost(postToRefresh)
+      }
+    }
+
+    document.addEventListener('refreshPost', handleRefreshPostEvent as EventListener)
+    return () => {
+      document.removeEventListener('refreshPost', handleRefreshPostEvent as EventListener)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posts])
+
   if (loading && posts.length === 0) {
     return <div>Cargando...</div>
   }
@@ -688,53 +745,95 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                 >
                   <td className="whitespace-nowrap px-4 py-4">
                     {post.contentFormat === 'IMAGE' && (
-                      <img
-                        src={post.mediaURL || 'https://via.placeholder.com/150'}
-                        alt="Content preview"
-                        className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
-                      />
+                      <div className="relative h-16 w-16">
+                        <img
+                          src={post.mediaURL || 'https://via.placeholder.com/150'}
+                          alt="Content preview"
+                          className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
+                          onError={(e) => {
+                            const imgElement = e.target as HTMLImageElement
+                            imgElement.style.display = 'none'
+                            const container = imgElement.parentElement
+                            if (container) {
+                              container.innerHTML = `
+                                <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
+                                  <button 
+                                    class="p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                                    onclick="document.dispatchEvent(new CustomEvent('refreshPost', { detail: '${post.id}' }))"
+                                  >
+                                    <svg class="w-6 h-6 ${refreshingPosts[post.id] ? 'animate-spin' : ''}" viewBox="0 0 24 24">
+                                      <path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              `
+                            }
+                          }}
+                        />
+                      </div>
                     )}
                     {post.contentFormat === 'VIDEO' && (
                       <div className="relative h-16 w-16">
-                        {/* Componente de video con previsualización */}
                         <video
                           src={post.mediaURL}
                           className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
                           preload="metadata"
                           muted
                           onLoadedMetadata={(e) => {
-                            // Intentamos mover el cursor al primer frame para mostrar la miniatura
-                            ;(e.target as HTMLVideoElement).currentTime = 0
+                            (e.target as HTMLVideoElement).currentTime = 0
                           }}
                           onError={(e) => {
-                            // Fallback visual si hay error al cargar el video
-                            const fallbackContainer = (
-                              e.target as HTMLVideoElement
-                            ).parentElement
-                            if (fallbackContainer) {
-                              fallbackContainer.innerHTML = `
+                            const videoElement = e.target as HTMLVideoElement
+                            videoElement.style.display = 'none'
+                            const container = videoElement.parentElement
+                            if (container) {
+                              container.innerHTML = `
                                 <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-                                  <svg class="w-6 h-6 text-gray-600" viewBox="0 0 24 24">
-                                    <path fill="currentColor" d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/>
-                                    <path fill="currentColor" d="M10 8v8l6-4z"/>
-                                  </svg>
+                                  <button 
+                                    class="p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                                    onclick="document.dispatchEvent(new CustomEvent('refreshPost', { detail: '${post.id}' }))"
+                                  >
+                                    <svg class="w-6 h-6 ${refreshingPosts[post.id] ? 'animate-spin' : ''}" viewBox="0 0 24 24">
+                                      <path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                                    </svg>
+                                  </button>
                                 </div>
                               `
                             }
                           }}
                         />
-                        {/* Overlay con icono de video */}
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
                           <Video className="h-6 w-6 text-white" />
                         </div>
                       </div>
                     )}
                     {post.contentFormat === 'CAROUSEL_ALBUM' && (
-                      <img
-                        src={post.mediaURL || 'https://via.placeholder.com/150'}
-                        alt="First image of carrousel"
-                        className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
-                      />
+                      <div className="relative h-16 w-16">
+                        <img
+                          src={post.mediaURL || 'https://via.placeholder.com/150'}
+                          alt="First image of carrousel"
+                          className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
+                          onError={(e) => {
+                            const imgElement = e.target as HTMLImageElement
+                            imgElement.style.display = 'none'
+                            const container = imgElement.parentElement
+                            if (container) {
+                              container.innerHTML = `
+                                <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
+                                  <button 
+                                    class="p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                                    onclick="document.dispatchEvent(new CustomEvent('refreshPost', { detail: '${post.id}' }))"
+                                  >
+                                    <svg class="w-6 h-6 ${refreshingPosts[post.id] ? 'animate-spin' : ''}" viewBox="0 0 24 24">
+                                      <path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              `
+                            }
+                          }}
+                        />
+                      </div>
                     )}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">

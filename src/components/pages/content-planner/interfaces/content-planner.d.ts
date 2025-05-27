@@ -11,6 +11,8 @@ export interface Post {
   mediaURL: string
   publicationDate: string
   publicationTime: string
+  publication_id: string
+  permalink?: string
   likes: number
   comments: number
   shares: number

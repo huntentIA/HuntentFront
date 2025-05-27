@@ -15,7 +15,9 @@ const useReferentSearchService = () => {
   const [error, setError] = useState<string | null>(null)
 
   const fetchUserInstagramProfile = useCallback(
-    async (instagramAccountName: string): Promise<void> => {
+    async (
+      instagramAccountName: string,
+    ): Promise<void> => {
       if (loading) return
       setLoading(true)
       setError(null)
@@ -114,7 +116,6 @@ const useReferentSearchService = () => {
       throw error
     }
   }
-
   return {
     competitorsData,
     loading,

@@ -46,6 +46,8 @@ interface GetPostResponse {
   has_more: boolean 
 }
 
+const accessToken = import.meta.env.VITE_APP_INSTAGRAM_ACCESS_TOKEN
+
 const postService = {
   /**
    * Crea una nueva publicación
@@ -261,6 +263,26 @@ const postService = {
       throw error
     }
   },
+
+  updatePost: async (updatePost: UpdatePost): Promise<Post> => {
+    try {
+      const { data } = await httpClient.put<Post>(`/api/posts?specific=true`, updatePost)
+      return data
+    } catch (error) {
+      console.error(`Error al actualizar la publicación ${updatePost.publication_id}:`, error)
+      throw error
+    }
+  },
+
+  getPost: async (instagramAccountName: string, postId: string): Promise<UpdatePost> => {
+    try {
+      const { data } = await httpClient.get<UpdatePost>(`/meta/account?instagram_account=${instagramAccountName}&token=${accessToken}&post_id=${postId}`)
+      return data
+    } catch (error) {
+      console.error(`Error al obtener la publicación ${postId}:`, error)
+      throw error
+    }
+  }
 }
 
 export default postService
