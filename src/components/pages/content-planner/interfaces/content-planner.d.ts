@@ -2,6 +2,10 @@ export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 export type ContentFormat = 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM'
 export type SortDirection = 'asc' | 'desc'
 
+export interface RefreshState {
+  [key: string]: boolean;
+} 
+
 export interface Post {
   id: string
   accountID: string
