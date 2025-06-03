@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect} from 'react'
 import { X, ExternalLink } from 'lucide-react'
 import { toast } from 'react-toastify'
-import transcribeService from '../../../services/transcribe.service'
+//import transcribeService from '../../../services/transcribe.service'
 import Slider from 'react-slick'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
@@ -19,11 +19,16 @@ interface PostModalProps {
   isOpen: boolean
 }
 
-const PostModal: React.FC<PostModalProps> = ({ post, businessId, closeModal, isOpen }) => {
-  const [isTranscribing, setIsTranscribing] = useState<boolean>(false)
+const PostModal: React.FC<PostModalProps> = ({
+  post,
+  businessId,
+  closeModal,
+  isOpen,
+}) => {
+  //const [isTranscribing, setIsTranscribing] = useState<boolean>(false)
   //const [isTranscriptionRequired, setIsTranscriptionRequired] = useState<boolean>(false)
 
-/*   useEffect(() => {
+  /*   useEffect(() => {
     // Verificar si se requiere transcripción
     if (post && post.contentFormat === 'VIDEO' && !post.videoTranscript) {
       setIsTranscriptionRequired(true)
@@ -68,46 +73,50 @@ const PostModal: React.FC<PostModalProps> = ({ post, businessId, closeModal, isO
   }
 
   // In PostModal.tsx
-const handleApproval = async (post: Post, businessId: string, status: PostStatus): Promise<void> => {
-  if (!post) return
+  const handleApproval = async (
+    post: Post,
+    businessId: string,
+    status: PostStatus
+  ): Promise<void> => {
+    if (!post) return
 
-  try {
-
-    /* if (status === 'APPROVED') {
+    try {
+      /* if (status === 'APPROVED') {
       if(post.contentFormat === 'VIDEO' && !post.videoTranscript) {
         toast.warning('Es necesario transcribir el video antes de aprobarlo.');
         return;
       }
     } */
-    const newStatus = status === 'APPROVED' ? 'APPROVED' : 'REJECTED'
-    const businessPostData: BusinessPostDataCreate = {
-      postId: post.id,
-      businessId: businessId,
-      publicationDate: new Date(post.publicationDate),
-      status: newStatus,
-      contentFormat: post.contentFormat,
-    }
-    const success = await BusinessPostService.createBusinessPost(businessPostData)
-    
-    if (success) {
-      toast.success(
-        `El post ha sido ${status === 'APPROVED' ? 'aprobado' : 'rechazado'}.`
-      )
-      closeModal()
-    } else {
+      const newStatus = status === 'APPROVED' ? 'APPROVED' : 'REJECTED'
+      const businessPostData: BusinessPostDataCreate = {
+        postId: post.id,
+        businessId: businessId,
+        publicationDate: new Date(post.publicationDate),
+        status: newStatus,
+        contentFormat: post.contentFormat,
+      }
+      const success =
+        await BusinessPostService.createBusinessPost(businessPostData)
+
+      if (success) {
+        toast.success(
+          `El post ha sido ${status === 'APPROVED' ? 'aprobado' : 'rechazado'}.`
+        )
+        closeModal()
+      } else {
+        toast.error(
+          `Error al ${status === 'APPROVED' ? 'aprobar' : 'rechazar'} el post.`
+        )
+      }
+    } catch (error) {
+      console.error('Error en handleApproval:', error)
       toast.error(
         `Error al ${status === 'APPROVED' ? 'aprobar' : 'rechazar'} el post.`
       )
     }
-  } catch (error) {
-    console.error('Error en handleApproval:', error)
-    toast.error(
-      `Error al ${status === 'APPROVED' ? 'aprobar' : 'rechazar'} el post.`
-    )
   }
-}
 
-  const handleTranscribe = async (): Promise<void> => {
+/*   const handleTranscribe = async (): Promise<void> => {
     if (!post || !post.mediaURL || typeof post.mediaURL !== 'string') return
 
     try {
@@ -126,7 +135,7 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
     } finally {
       setIsTranscribing(false)
     }
-  }
+  } */
 
   if (!post || !isOpen) return null
 
@@ -160,23 +169,32 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
       return <div className="aspect-square w-full rounded-lg bg-gray-100" />
     }
 
-    if (contentFormat === 'CAROUSEL_ALBUM' && post.carousel_items && Array.isArray(post.carousel_items) && post.carousel_items.length > 0) {
+    if (
+      contentFormat === 'CAROUSEL_ALBUM' &&
+      post.carousel_items &&
+      Array.isArray(post.carousel_items) &&
+      post.carousel_items.length > 0
+    ) {
       return (
         <Slider {...carouselSettings} className="mb-4">
-          {Array.from({length: post.carousel_items.length}).map((_, index) => {
-            const item = post.carousel_items?.[index] as unknown as {media_url: string};
-            if (!item || !item.media_url) return null;
-            
-            return (
-              <div key={index} className="outline-none">
-                <img
-                  src={item.media_url}
-                  alt={`Slide ${index + 1}`}
-                  className="aspect-square w-full rounded-lg bg-gray-100 object-cover"
-                />
-              </div>
-            );
-          })}
+          {Array.from({ length: post.carousel_items.length }).map(
+            (_, index) => {
+              const item = post.carousel_items?.[index] as unknown as {
+                media_url: string
+              }
+              if (!item || !item.media_url) return null
+
+              return (
+                <div key={index} className="outline-none">
+                  <img
+                    src={item.media_url}
+                    alt={`Slide ${index + 1}`}
+                    className="aspect-square w-full rounded-lg bg-gray-100 object-cover"
+                  />
+                </div>
+              )
+            }
+          )}
         </Slider>
       )
     }
@@ -202,7 +220,15 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
                 {videoTranscript}
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="mb-4 rounded-lg bg-yellow-100 p-3 text-yellow-800">
+                <p className="font-bold">¡Alto ahí cazador!</p>
+                <p>
+                  Nuestro equipo está trabajando en terminar de desarrollar esta
+                  función, por el momento no está habilitada, pero tan pronto lo
+                  esté serás el primero en obtenerla.
+                </p>
+              </div>
+              /* <div className="space-y-2">
                 {isTranscribing ? (
                   <div className="rounded-lg bg-gray-100 p-3 text-gray-600">
                     Transcribiendo el video... Este proceso puede tomar varios
@@ -217,7 +243,7 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
                     Transcribir video
                   </button>
                 )}
-              </div>
+              </div> */
             )}
           </div>
         </>
@@ -227,7 +253,13 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
     if (contentFormat === 'IMAGE') {
       return (
         <img
-          src={typeof mediaURL === 'string' ? mediaURL : Array.isArray(mediaURL) ? mediaURL[0] : ''}
+          src={
+            typeof mediaURL === 'string'
+              ? mediaURL
+              : Array.isArray(mediaURL)
+                ? mediaURL[0]
+                : ''
+          }
           alt={caption || 'Imagen del post'}
           className="aspect-square w-full rounded-lg bg-gray-100 object-cover"
         />
@@ -350,7 +382,8 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
                     Fecha y hora de publicación
                   </h3>
                   <div className="min-h-[40px] rounded-lg bg-gray-100 p-3">
-                    {formatDate(publicationDate) || 'No hay fecha y hora de publicación.'}
+                    {formatDate(publicationDate) ||
+                      'No hay fecha y hora de publicación.'}
                   </div>
                 </div>
               </div>
@@ -374,25 +407,25 @@ const handleApproval = async (post: Post, businessId: string, status: PostStatus
 
             {/* Botones de aprobación */}
             {status !== 'APPROVED' && (
-            <div className="flex gap-4">
-              <button
-                onClick={() => handleApproval(post, businessId, 'REJECTED')}
-                className="rounded-lg bg-pink-500 px-6 py-2 text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={status === 'REJECTED'}
-              >
-                RECHAZAR
-              </button>
-              <button
-                onClick={() => handleApproval(post, businessId, 'APPROVED')}
-                className="rounded-lg bg-green-500 px-6 py-2 text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
-                /* disabled={status === 'APPROVED' || isTranscriptionRequired} */
-                disabled={status === 'APPROVED'}
-              >
-                APROBAR
-              </button>
-            </div>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => handleApproval(post, businessId, 'REJECTED')}
+                  className="rounded-lg bg-pink-500 px-6 py-2 text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={status === 'REJECTED'}
+                >
+                  RECHAZAR
+                </button>
+                <button
+                  onClick={() => handleApproval(post, businessId, 'APPROVED')}
+                  className="rounded-lg bg-green-500 px-6 py-2 text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  /* disabled={status === 'APPROVED' || isTranscriptionRequired} */
+                  disabled={status === 'APPROVED'}
+                >
+                  APROBAR
+                </button>
+              </div>
             )}
-            
+
             {/* {isTranscriptionRequired && (
               <div className="ml-4 text-sm text-orange-500">
                 Es necesario transcribir el video antes de aprobar.

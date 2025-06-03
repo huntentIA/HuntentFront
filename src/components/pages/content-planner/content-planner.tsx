@@ -456,42 +456,60 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   }
 
   const handleRefreshPost = async (post: Post) => {
-    if (refreshingPosts[post.id]) return
+    // Prevenir múltiples refrescos simultáneos del mismo post
+    if (refreshingPosts[post.id]) {
+      toast.info('Ya se está actualizando esta publicación')
+      return
+    }
 
     setRefreshingPosts(prev => ({ ...prev, [post.id]: true }))
+    
     try {
-      // Primero obtenemos la información actualizada
+      // Obtener datos actualizados del post
       const updatedPostData = await postService.getPost(post.creatorAccount, post.publication_id)
-      console.log('updatedPostData', updatedPostData)
-
-      // Si tenemos datos actualizados del post, los usamos
-      if (updatedPostData) {
-        const updatedPost: UpdatePost = {
-          id: post.id,
-          owner_account: post.creatorAccount,
-          publication_id: post.publication_id,
-          description: updatedPostData.description || '',
-          media_type: updatedPostData.media_type,
-          instagram_media_type: updatedPostData.media_type,
-          creation_date_and_time: updatedPostData.creation_date_and_time,
-          comments_count: updatedPostData.comments_count || 0,
-          likes_count: updatedPostData.likes_count || 0,
-          interactions_count: updatedPostData.interactions_count || 0,
-          permalink: updatedPostData.permalink || '',
-          hash_tags: updatedPostData.hash_tags || [],
-          media_url: updatedPostData.media_url || ''
-        }
-
-        await postService.updatePost(updatedPost)
-        toast.success('Publicación actualizada correctamente')
-        await loadPosts(currentPage)
-      } else {
-        toast.error('No se pudo actualizar la publicación')
+      
+      if (!updatedPostData) {
+        throw new Error('No se pudieron obtener los datos actualizados')
       }
+
+      // Validar que los datos necesarios estén presentes
+      if (!updatedPostData.media_type || !updatedPostData.creation_date_and_time) {
+        throw new Error('Datos incompletos en la respuesta')
+      }
+
+      const updatedPost: UpdatePost = {
+        id: post.id,
+        owner_account: post.creatorAccount,
+        publication_id: post.publication_id,
+        description: updatedPostData.description || '',
+        media_type: updatedPostData.media_type,
+        instagram_media_type: updatedPostData.media_type,
+        creation_date_and_time: updatedPostData.creation_date_and_time,
+        comments_count: updatedPostData.comments_count || 0,
+        likes_count: updatedPostData.likes_count || 0,
+        interactions_count: updatedPostData.interactions_count || 0,
+        permalink: updatedPostData.permalink || '',
+        hash_tags: updatedPostData.hash_tags || [],
+        media_url: updatedPostData.media_url || ''
+      }
+
+      // Actualizar el post en la base de datos
+      const updateSuccess = await postService.updatePost(updatedPost)
+      
+      if (!updateSuccess) {
+        throw new Error('Error al guardar los datos actualizados')
+      }
+
+      toast.success('Publicación actualizada correctamente')
+      
+      // Recargar la lista de posts
+      await loadPosts(currentPage)
     } catch (error) {
       console.error('Error al actualizar la publicación:', error)
-      toast.error('Error al actualizar la publicación')
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error(`Error al actualizar la publicación: ${errorMessage}`)
     } finally {
+      // Limpiar el estado de refresco
       setRefreshingPosts(prev => ({ ...prev, [post.id]: false }))
     }
   }
@@ -512,6 +530,36 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts])
+
+  /* Componente de refresco temporalmente deshabilitado
+  const RefreshButton = ({ postId, isRefreshing }: { postId: string; isRefreshing: boolean }) => {
+    const handleClick = () => {
+      document.dispatchEvent(new CustomEvent('refreshPost', { detail: postId }))
+    }
+
+    return (
+      <div className="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
+        <button 
+          className={`p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors ${
+            isRefreshing ? 'opacity-75 cursor-not-allowed' : ''
+          }`}
+          onClick={handleClick}
+          disabled={isRefreshing}
+          title={isRefreshing ? 'Actualizando...' : 'Actualizar publicación'}
+        >
+          <svg 
+            className={`w-6 h-6 ${isRefreshing ? 'animate-spin' : ''}`} 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              fill="currentColor" 
+              d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+            />
+          </svg>
+        </button>
+      </div>
+    )
+  } */
 
   if (loading && posts.length === 0) {
     return <div>Cargando...</div>
@@ -751,20 +799,21 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                           alt="Content preview"
                           className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
                           onError={(e) => {
-                            const imgElement = e.target as HTMLImageElement
-                            imgElement.style.display = 'none'
-                            const container = imgElement.parentElement
+                            const element = e.target as HTMLElement
+                            element.style.display = 'none'
+                            const container = element.parentElement
                             if (container) {
+                              /* Código del botón de refresco temporalmente deshabilitado
+                              const refreshButton = document.createElement('div')
+                              refreshButton.innerHTML = ReactDOMServer.renderToString(
+                                <RefreshButton postId={post.id} isRefreshing={refreshingPosts[post.id]} />
+                              )
+                              container.appendChild(refreshButton)
+                              */
+                              // Mostrar un placeholder simple en lugar del botón de refresco
                               container.innerHTML = `
                                 <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-                                  <button 
-                                    class="p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-                                    onclick="document.dispatchEvent(new CustomEvent('refreshPost', { detail: '${post.id}' }))"
-                                  >
-                                    <svg class="w-6 h-6 ${refreshingPosts[post.id] ? 'animate-spin' : ''}" viewBox="0 0 24 24">
-                                      <path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                                    </svg>
-                                  </button>
+                                  <span class="text-gray-500">Sin imagen</span>
                                 </div>
                               `
                             }
@@ -783,20 +832,21 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                             (e.target as HTMLVideoElement).currentTime = 0
                           }}
                           onError={(e) => {
-                            const videoElement = e.target as HTMLVideoElement
-                            videoElement.style.display = 'none'
-                            const container = videoElement.parentElement
+                            const element = e.target as HTMLElement
+                            element.style.display = 'none'
+                            const container = element.parentElement
                             if (container) {
+                              /* Código del botón de refresco temporalmente deshabilitado
+                              const refreshButton = document.createElement('div')
+                              refreshButton.innerHTML = ReactDOMServer.renderToString(
+                                <RefreshButton postId={post.id} isRefreshing={refreshingPosts[post.id]} />
+                              )
+                              container.appendChild(refreshButton)
+                              */
+                              // Mostrar un placeholder simple en lugar del botón de refresco
                               container.innerHTML = `
                                 <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-                                  <button 
-                                    class="p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-                                    onclick="document.dispatchEvent(new CustomEvent('refreshPost', { detail: '${post.id}' }))"
-                                  >
-                                    <svg class="w-6 h-6 ${refreshingPosts[post.id] ? 'animate-spin' : ''}" viewBox="0 0 24 24">
-                                      <path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                                    </svg>
-                                  </button>
+                                  <span class="text-gray-500">Sin video</span>
                                 </div>
                               `
                             }
@@ -814,20 +864,21 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                           alt="First image of carrousel"
                           className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
                           onError={(e) => {
-                            const imgElement = e.target as HTMLImageElement
-                            imgElement.style.display = 'none'
-                            const container = imgElement.parentElement
+                            const element = e.target as HTMLElement
+                            element.style.display = 'none'
+                            const container = element.parentElement
                             if (container) {
+                              /* Código del botón de refresco temporalmente deshabilitado
+                              const refreshButton = document.createElement('div')
+                              refreshButton.innerHTML = ReactDOMServer.renderToString(
+                                <RefreshButton postId={post.id} isRefreshing={refreshingPosts[post.id]} />
+                              )
+                              container.appendChild(refreshButton)
+                              */
+                              // Mostrar un placeholder simple en lugar del botón de refresco
                               container.innerHTML = `
                                 <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-                                  <button 
-                                    class="p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-                                    onclick="document.dispatchEvent(new CustomEvent('refreshPost', { detail: '${post.id}' }))"
-                                  >
-                                    <svg class="w-6 h-6 ${refreshingPosts[post.id] ? 'animate-spin' : ''}" viewBox="0 0 24 24">
-                                      <path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                                    </svg>
-                                  </button>
+                                  <span class="text-gray-500">Sin imagen</span>
                                 </div>
                               `
                             }

@@ -13,6 +13,8 @@ import ContentPlanner from './components/pages/content-planner/content-planner'
 import KnowledgeBaseForm from './components/pages/knowledge-base/knowledge-base-form/knowledge-base-form'
 import KnowledgeBaseView from './components/pages/knowledge-base/knowledge-base-view/knoledge-base-view'
 import ApproveContentPlanner from './components/pages/content-planner/approve-content-planner'
+import Tutorial from './components/shared/tutorial/Tutorial'
+
 interface User {
   id: string
 }
@@ -23,6 +25,7 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true)
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false)
   const [businessName, setBusinessName] = useState<string>('')
+  const [showTutorial, setShowTutorial] = useState<boolean>(false)
 
   useEffect(() => {
     const storedAuthStatus = localStorage.getItem('isAuthenticated')
@@ -33,10 +36,9 @@ function App() {
     const userDataString = localStorage.getItem('userData')
     if (userDataString) {
       const user = JSON.parse(userDataString) as User
-      // Comment out or remove the business fetching for now
       BussinessService.getBusinessIdByUserId(user.id).then((business) => {
         if (business && business.length > 0) {
-          setBusinessName(business[0].businessName) // Assuming 'name' is the correct property
+          setBusinessName(business[0].businessName)
         }
       })
     }
@@ -51,7 +53,6 @@ function App() {
     setIsAuthenticated(true)
     localStorage.setItem('isAuthenticated', 'true');
     
-    // Cargar el nombre del negocio para el usuario que inició sesión
     const userDataString = localStorage.getItem('userData')
     if (userDataString) {
       const user = JSON.parse(userDataString) as User
@@ -72,8 +73,24 @@ function App() {
   }
 
   const toggleSidebar = (): void => {
-    setIsSidebarOpen(!isSidebarOpen)
+    if (showTutorial) {
+      return;
+    }
+    setIsSidebarOpen(!isSidebarOpen);
   }
+
+  const handleTutorialRestart = () => {
+    localStorage.removeItem('hasSeenTutorial');
+    setIsSidebarOpen(true);
+    setShowTutorial(false);
+    setTimeout(() => {
+      setShowTutorial(true);
+    }, 100);
+  };
+
+  const handleTutorialEnd = () => {
+    setShowTutorial(false);
+  };
 
   if (loading) {
     return <div>Loading...</div>
@@ -85,7 +102,15 @@ function App() {
         className={`flex h-auto w-full ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}
       >
         {isAuthenticated && (
-          <Sidebar isDarkMode={isDarkMode} isOpen={isSidebarOpen} />
+          <>
+            <Sidebar isDarkMode={isDarkMode} isOpen={isSidebarOpen} />
+            <Tutorial 
+              isDarkMode={isDarkMode} 
+              onOpenSidebar={() => setIsSidebarOpen(true)}
+              shouldStart={showTutorial}
+              onEnd={handleTutorialEnd}
+            />
+          </>
         )}
 
         <div
@@ -99,6 +124,8 @@ function App() {
                 <button
                   onClick={toggleSidebar}
                   className={`${isDarkMode ? 'bg-gray-800/80 hover:bg-gray-800' : 'bg-orange-600 hover:bg-orange-700'} mr-4 rounded-full p-2 text-white shadow-lg`}
+                  aria-label={isSidebarOpen ? "Cerrar menú" : "Abrir menú"}
+                  disabled={showTutorial}
                 >
                   {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
@@ -109,8 +136,16 @@ function App() {
                 <button
                   onClick={toggleTheme}
                   className={`${isDarkMode ? 'bg-gray-800/80 hover:bg-gray-800' : 'bg-orange-600 hover:bg-orange-700'} flex items-center rounded-lg px-4 py-2 text-white`}
+                  aria-label="Cambiar tema"
                 >
                   {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
+                </button>
+                <button
+                  onClick={handleTutorialRestart}
+                  className={`${isDarkMode ? 'bg-gray-800/80 hover:bg-gray-800' : 'bg-orange-600 hover:bg-orange-700'} ml-4 flex items-center rounded-lg px-4 py-2 text-white`}
+                >
+                  <span className="mr-2">📚</span>
+                  Tutorial
                 </button>
                 <button
                   onClick={handleLogout}
