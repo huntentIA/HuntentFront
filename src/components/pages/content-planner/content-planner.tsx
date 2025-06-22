@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+// ReactDOMServer removido - reemplazado por solución nativa que preserva funcionalidad
+
 import {
   ChevronDown,
   ChevronUp,
   Check,
   X,
   Eye,
-  Video,
   Info,
 } from 'lucide-react'
 import { ToastContainer, toast } from 'react-toastify'
@@ -28,7 +29,6 @@ import businessPostService from '../../../services/business-post.service'
 
 interface UserData {
   id: string
-  // Otros campos de usuario
 }
 
 interface ContentPlannerProps {
@@ -38,11 +38,9 @@ interface ContentPlannerProps {
 export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   isDarkMode,
 }) => {
-  // Obtener datos de navegación (si proviene de user-account)
   const location = useLocation()
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
   
-  // States for filters and configuration
   const [mediaType, setMediaType] = useState<string>('')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -50,7 +48,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     direction: 'desc',
   })
 
-  // States for data and pagination
   const [posts, setPosts] = useState<Post[]>([])
   const [businessId, setBusinessId] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
@@ -71,9 +68,9 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
  /*  const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: '',
-  }) */
+  })
 
-  /* const [confirmedDateRange, setConfirmedDateRange] = useState({
+  const [confirmedDateRange, setConfirmedDateRange] = useState({
     startDate: '',
     endDate: '',
   }) */
@@ -92,7 +89,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     publicationDate: 'Fecha de Publicación',
   }
 
-  // Cargar los accountIds al inicio
   useEffect(() => {
     const fetchAccountIds = async () => {
       try {
@@ -111,7 +107,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     fetchAccountIds()
   }, [])
 
-  // Function to get account IDs
   const getAccountIds = async (): Promise<string[]> => {
     try {
       const userDataString = localStorage.getItem('userData')
@@ -151,28 +146,22 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
-  // Efecto para manejar la selección de cuenta desde user-account
-  // Se ejecuta después de la carga inicial
   useEffect(() => {
     if (initialLoadComplete && location.state && location.state.selectedCreator) {
       setSelectedUsers([location.state.selectedCreator])
     }
   }, [location.state, initialLoadComplete])
 
-  // Efecto para cargar publicaciones cuando cambien los filtros
   useEffect(() => {
     if (accountIds.length > 0 && initialLoadComplete) {
-      // verificamos que exista en la lista de cuentas
       if (location.state?.selectedCreator && businessAccounts.length > 0) {
         const creatorExists = businessAccounts.some(
           account => account.accountName === location.state.selectedCreator
         )
         
-        // Si el creador no existe en las cuentas disponibles, limpiamos el filtro
         if (!creatorExists) {
           setSelectedUsers([])
           
-          // Y actualizamos el estado de navegación
           const newState = { ...location.state }
           delete newState.selectedCreator
           window.history.replaceState(newState, '')
@@ -221,8 +210,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
 
     if (mediaType) params.content_format = mediaType
     
-    // Asegurarnos de aplicar el filtro de usuarios seleccionados
-    // incluyendo el que viene por navegación si está presente
     const effectiveSelectedUsers = selectedUsers.length > 0 
       ? selectedUsers 
       : (location.state?.selectedCreator ? [location.state.selectedCreator] : [])
@@ -241,7 +228,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
       setLoading(true)
       setError(null)
 
-      // Obtener posts que ya están aprobados o rechazados para este negocio
       const processedPostsResponse = await businessPostService.getBusinessPost({
         businessId: businessId,
         sort_by: 'creatorAccount',
@@ -249,7 +235,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         status: ['APPROVED', 'REJECTED'],
       });
 
-      // Crear lista de IDs de posts que ya fueron procesados
       const processedPostIds = processedPostsResponse?.items?.map(item => item.id) || [];
 
       const params = buildQueryParams(page)
@@ -259,15 +244,12 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         throw new Error('No items returned from API')
       }
 
-      // Filtrar posts para no mostrar los que ya están aprobados o rechazados
       const filteredPosts = response.items.filter(post => 
         !processedPostIds.includes(post.id)
       );
 
       setPosts(filteredPosts)
       
-      // Si todos los posts fueron filtrados pero había posts originalmente,
-      // mostrar un mensaje informativo
       if (filteredPosts.length === 0 && response.items.length > 0) {
         toast.info('Todas las publicaciones ya han sido procesadas (aprobadas o rechazadas).')
       }
@@ -292,7 +274,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
-  // Función para manejar la aprobación o rechazo de un post
   const handleApproval = async (postId: string, status: string, publicationDate: Date) => {
     setLoading(true)
     try {
@@ -330,7 +311,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
-  // Modal handling functions
   const openPostModal = (post: Post) => {
     setSelectedPost(post)
   }
@@ -375,7 +355,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     }
   }
 
- /*  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+/*   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
 
     setDateRange(prev => ({
@@ -389,9 +369,9 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     } 
     
     setShowApplyButton(!!newDateRange.startDate && !!newDateRange.endDate)
-  } */
+  }
 
-/*   const applyDateFilter = () => {
+  const applyDateFilter = () => {
     if (dateRange.startDate && dateRange.endDate) {
       if (new Date(dateRange.startDate) > new Date(dateRange.endDate)) {
         toast.warning('La fecha inicial no puede ser posterior a la fecha final')
@@ -404,9 +384,9 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     } else {
       toast.warning('Por favor ingrese ambas fechas para filtrar')
     }
-  } */
+  }
 
-/*   const clearDateFilter = () => {
+  const clearDateFilter = () => {
     const emptyDates = {
       startDate: '',
       endDate: ''
@@ -456,7 +436,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   }
 
   const handleRefreshPost = async (post: Post) => {
-    // Prevenir múltiples refrescos simultáneos del mismo post
     if (refreshingPosts[post.id]) {
       toast.info('Ya se está actualizando esta publicación')
       return
@@ -466,7 +445,7 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
     
     try {
       // Obtener datos actualizados del post
-      const updatedPostData = await postService.getPost(post.creatorAccount, post.publication_id)
+      const updatedPostData = await postService.getPost(post.publication_id, post.creatorAccount)
       
       if (!updatedPostData) {
         throw new Error('No se pudieron obtener los datos actualizados')
@@ -531,35 +510,33 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts])
 
-  /* Componente de refresco temporalmente deshabilitado
-  const RefreshButton = ({ postId, isRefreshing }: { postId: string; isRefreshing: boolean }) => {
-    const handleClick = () => {
+  // Función utilitaria para crear botón de refresh funcional
+  const createRefreshButton = (postId: string, isRefreshing: boolean = false) => {
+    const refreshContainer = document.createElement('div')
+    refreshContainer.className = 'w-16 h-16 bg-gray-300 rounded flex items-center justify-center'
+    
+    const refreshButton = document.createElement('button')
+    refreshButton.className = `p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors ${
+      isRefreshing ? 'opacity-75 cursor-not-allowed' : ''
+    }`
+    refreshButton.disabled = isRefreshing
+    refreshButton.title = isRefreshing ? 'Actualizando...' : 'Actualizar publicación'
+    
+    // Crear el SVG icon
+    refreshButton.innerHTML = `
+      <svg class="w-6 h-6 ${isRefreshing ? 'animate-spin' : ''}" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+      </svg>
+    `
+    
+    // Agregar el event listener funcional
+    refreshButton.addEventListener('click', () => {
       document.dispatchEvent(new CustomEvent('refreshPost', { detail: postId }))
-    }
-
-    return (
-      <div className="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-        <button 
-          className={`p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors ${
-            isRefreshing ? 'opacity-75 cursor-not-allowed' : ''
-          }`}
-          onClick={handleClick}
-          disabled={isRefreshing}
-          title={isRefreshing ? 'Actualizando...' : 'Actualizar publicación'}
-        >
-          <svg 
-            className={`w-6 h-6 ${isRefreshing ? 'animate-spin' : ''}`} 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              fill="currentColor" 
-              d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
-            />
-          </svg>
-        </button>
-      </div>
-    )
-  } */
+    })
+    
+    refreshContainer.appendChild(refreshButton)
+    return refreshContainer
+  }
 
   if (loading && posts.length === 0) {
     return <div>Cargando...</div>
@@ -803,19 +780,9 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                             element.style.display = 'none'
                             const container = element.parentElement
                             if (container) {
-                              /* Código del botón de refresco temporalmente deshabilitado
-                              const refreshButton = document.createElement('div')
-                              refreshButton.innerHTML = ReactDOMServer.renderToString(
-                                <RefreshButton postId={post.id} isRefreshing={refreshingPosts[post.id]} />
-                              )
+                              // Usar la función utilitaria que preserva la funcionalidad
+                              const refreshButton = createRefreshButton(post.id, refreshingPosts[post.id])
                               container.appendChild(refreshButton)
-                              */
-                              // Mostrar un placeholder simple en lugar del botón de refresco
-                              container.innerHTML = `
-                                <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-                                  <span class="text-gray-500">Sin imagen</span>
-                                </div>
-                              `
                             }
                           }}
                         />
@@ -836,25 +803,13 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                             element.style.display = 'none'
                             const container = element.parentElement
                             if (container) {
-                              /* Código del botón de refresco temporalmente deshabilitado
-                              const refreshButton = document.createElement('div')
-                              refreshButton.innerHTML = ReactDOMServer.renderToString(
-                                <RefreshButton postId={post.id} isRefreshing={refreshingPosts[post.id]} />
-                              )
+                              // Usar la función utilitaria que preserva la funcionalidad
+                              const refreshButton = createRefreshButton(post.id, refreshingPosts[post.id])
                               container.appendChild(refreshButton)
-                              */
-                              // Mostrar un placeholder simple en lugar del botón de refresco
-                              container.innerHTML = `
-                                <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-                                  <span class="text-gray-500">Sin video</span>
-                                </div>
-                              `
                             }
                           }}
                         />
-                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                          <Video className="h-6 w-6 text-white" />
-                        </div>
+                        
                       </div>
                     )}
                     {post.contentFormat === 'CAROUSEL_ALBUM' && (
@@ -868,19 +823,9 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                             element.style.display = 'none'
                             const container = element.parentElement
                             if (container) {
-                              /* Código del botón de refresco temporalmente deshabilitado
-                              const refreshButton = document.createElement('div')
-                              refreshButton.innerHTML = ReactDOMServer.renderToString(
-                                <RefreshButton postId={post.id} isRefreshing={refreshingPosts[post.id]} />
-                              )
+                              // Usar la función utilitaria que preserva la funcionalidad
+                              const refreshButton = createRefreshButton(post.id, refreshingPosts[post.id])
                               container.appendChild(refreshButton)
-                              */
-                              // Mostrar un placeholder simple en lugar del botón de refresco
-                              container.innerHTML = `
-                                <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-                                  <span class="text-gray-500">Sin imagen</span>
-                                </div>
-                              `
                             }
                           }}
                         />
@@ -935,9 +880,6 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
                               ? 'bg-green-600 hover:bg-green-700'
                               : 'bg-green-500 hover:bg-green-600'
                           } text-white`}
-                          /* Comentado temporalmente la deshabilitación del botón para videos sin transcripción
-                          disabled={post.contentFormat === 'VIDEO' && !post.videoTranscript}
-                          */
                         >
                           <Check size={16} />
                         </button>

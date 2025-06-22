@@ -274,9 +274,9 @@ const postService = {
     }
   },
 
-  getPost: async (instagramAccountName: string, postId: string): Promise<UpdatePost> => {
+  getPost: async (postId: string, creatorAccount: string): Promise<UpdatePost> => {
     try {
-      const { data } = await httpClient.get<UpdatePost>(`/meta/account?instagram_account=${instagramAccountName}&token=${accessToken}&post_id=${postId}`)
+      const { data } = await httpClient.get<UpdatePost>(`/meta/specific-post?publication_id=${postId}&instagram_account=${creatorAccount}&token=${accessToken}`)
       return data
     } catch (error) {
       console.error(`Error al obtener la publicación ${postId}:`, error)

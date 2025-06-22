@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import './app.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import LoginPage from './components/pages/auth/auth'
@@ -6,7 +6,6 @@ import RegisterPage from './components/pages/register/register'
 import ReferentSearch from './components/pages/referent-search/referent-search'
 import PrivateRoute from './components/shared/privateRoute'
 import { Menu, Moon, Sun, X } from 'lucide-react'
-import BussinessService from './services/business.service'
 import Sidebar from './components/shared/sidebar/sidebar'
 import UserAccount from './components/pages/user-account/user-account'
 import ContentPlanner from './components/pages/content-planner/content-planner'
@@ -14,62 +13,21 @@ import KnowledgeBaseForm from './components/pages/knowledge-base/knowledge-base-
 import KnowledgeBaseView from './components/pages/knowledge-base/knowledge-base-view/knoledge-base-view'
 import ApproveContentPlanner from './components/pages/content-planner/approve-content-planner'
 import Tutorial from './components/shared/tutorial/Tutorial'
+import { AuthProvider, ThemeProvider, useAuth, useTheme } from './context'
 
-interface User {
-  id: string
-}
-
-function App() {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
-  const [loading, setLoading] = useState<boolean>(true)
+function AppContent() {
+  const { isAuthenticated, loading, businessName, logout } = useAuth()
+  const { isDarkMode, toggleTheme } = useTheme()
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false)
-  const [businessName, setBusinessName] = useState<string>('')
   const [showTutorial, setShowTutorial] = useState<boolean>(false)
 
-  useEffect(() => {
-    const storedAuthStatus = localStorage.getItem('isAuthenticated')
-    if (storedAuthStatus === 'true') {
-      setIsAuthenticated(true)
-    }
-
-    const userDataString = localStorage.getItem('userData')
-    if (userDataString) {
-      const user = JSON.parse(userDataString) as User
-      BussinessService.getBusinessIdByUserId(user.id).then((business) => {
-        if (business && business.length > 0) {
-          setBusinessName(business[0].businessName)
-        }
-      })
-    }
-    setLoading(false)
-  }, [])
-
-  const toggleTheme = (): void => {
-    setIsDarkMode(!isDarkMode)
-  }
-
-  const handleLogin = (): void => {
-    setIsAuthenticated(true)
-    localStorage.setItem('isAuthenticated', 'true');
-    
-    const userDataString = localStorage.getItem('userData')
-    if (userDataString) {
-      const user = JSON.parse(userDataString) as User
-      BussinessService.getBusinessIdByUserId(user.id).then((business) => {
-        if (business && business.length > 0) {
-          setBusinessName(business[0].businessName)
-        }
-      })
-    }
+  const handleLogin = async (): Promise<void> => {
+    // Esta función ahora solo notifica que el login fue exitoso
+    // La lógica real está en los componentes de auth que llaman a useAuth().login()
   }
 
   const handleLogout = (): void => {
-    setIsAuthenticated(false)
-    setBusinessName('')
-    localStorage.removeItem('isAuthenticated')
-    localStorage.removeItem('businessData')
-    localStorage.removeItem('userData')
+    logout()
   }
 
   const toggleSidebar = (): void => {
@@ -228,6 +186,17 @@ function App() {
         </div>
       </div>
     </BrowserRouter>
+  )
+}
+
+// Componente principal con los providers
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 
