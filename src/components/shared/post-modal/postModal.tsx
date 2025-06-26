@@ -165,6 +165,46 @@ const PostModal: React.FC<PostModalProps> = ({
   }
 
   const renderMedia = (): React.ReactNode => {
+    // Si tenemos postURL, mostramos el embed de Instagram
+    if (postURL) {
+      return (
+        <div className="w-full">
+          <iframe
+            src={`${postURL}embed/`}
+            className="w-full rounded-lg border-0"
+            style={{ minHeight: '540px', maxHeight: '540px' }}
+            frameBorder="0"
+            scrolling="no"
+            allowTransparency={true}
+            allow="encrypted-media"
+            title="Post de Instagram"
+          />
+          
+          {/* Mostrar transcripción solo para videos */}
+          {contentFormat === 'VIDEO' && (
+            <div className="mt-4 space-y-2">
+              <h3 className="text-sm text-gray-600">Transcripción del video</h3>
+              {videoTranscript ? (
+                <div className="min-h-[100px] rounded-lg bg-gray-100 p-3">
+                  {videoTranscript}
+                </div>
+              ) : (
+                <div className="mb-4 rounded-lg bg-yellow-100 p-3 text-yellow-800">
+                  <p className="font-bold">¡Alto ahí cazador!</p>
+                  <p>
+                    Nuestro equipo está trabajando en terminar de desarrollar esta
+                    función, por el momento no está habilitada, pero tan pronto lo
+                    esté serás el primero en obtenerla.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    // Fallback: mostrar contenido directo si no hay postURL
     if (!mediaURL && !carousel_items) {
       return <div className="aspect-square w-full rounded-lg bg-gray-100" />
     }
@@ -228,22 +268,6 @@ const PostModal: React.FC<PostModalProps> = ({
                   esté serás el primero en obtenerla.
                 </p>
               </div>
-              /* <div className="space-y-2">
-                {isTranscribing ? (
-                  <div className="rounded-lg bg-gray-100 p-3 text-gray-600">
-                    Transcribiendo el video... Este proceso puede tomar varios
-                    minutos.
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleTranscribe}
-                    className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                    disabled={isTranscribing}
-                  >
-                    Transcribir video
-                  </button>
-                )}
-              </div> */
             )}
           </div>
         </>

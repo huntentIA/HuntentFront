@@ -6,7 +6,6 @@ import {
   Check,
   X,
   Eye,
-  Video,
   Info,
 } from 'lucide-react'
 import { ToastContainer, toast } from 'react-toastify'
@@ -25,6 +24,9 @@ import CustomMultiSelect from '../../shared/multiselect/multiselect'
 import { tooltipDescriptions } from '../../../utils/toolDescriptions'
 import { BusinessPostDataCreate } from '../../../services/interfaces/business-post-service'
 import businessPostService from '../../../services/business-post.service'
+import Tutorial from '../../shared/tutorial/Tutorial'
+import CachedThumbnail from '../../shared/cached-thumbnail/CachedThumbnail'
+import mediaCacheService from '../../../services/media-cache.service'
 
 interface UserData {
   id: string
@@ -107,6 +109,9 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
         setInitialLoadComplete(true)
       }
     }
+
+    // Limpiar caché viejo al inicializar
+    mediaCacheService.cleanOldCache().catch(console.error)
 
     fetchAccountIds()
   }, [])
@@ -570,475 +575,391 @@ export const ContentPlanner: React.FC<ContentPlannerProps> = ({
   }
 
   return (
-    <div
-    className={`p-4 md:p-6 ${
-      isDarkMode
-        ? 'bg-gray-900 text-gray-100'
-        : 'bg-gradient-to-br from-orange-50 via-white to-orange-50 text-gray-900'
-    } h-auto w-full min-h-screen`}
-    >
-      <h1 className="mb-8 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-center text-4xl font-bold text-transparent">
-        Cazador de Contenido
-      </h1>
+    <>
+      <Tutorial isDarkMode={isDarkMode} />
+      <div
+      className={`p-4 md:p-6 ${
+        isDarkMode
+          ? 'bg-gray-900 text-gray-100'
+          : 'bg-gradient-to-br from-orange-50 via-white to-orange-50 text-gray-900'
+      } h-auto w-full min-h-screen`}
+      >
+        <h1 className="content-planner-title mb-8 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-center text-4xl font-bold text-transparent">
+          Cazador de Contenido
+        </h1>
 
-      {/* Total de publicaciones */}
-      <div className={`mb-6 flex justify-start w-60 inline-block rounded-lg ${
-        isDarkMode ? 'bg-gray-800' : 'bg-gray-50'
-      } px-4 py-2 shadow-sm`}>
-        <p className={`text-md font-medium ${
-          isDarkMode ? 'text-gray-300' : 'text-gray-700'
-        }`}>
-          Total publicaciones: <span className="font-bold text-orange-500">{totalItems}</span>
-        </p>
-      </div>
+        {/* Total de publicaciones */}
+        <div className={`mb-6 flex justify-start w-60 inline-block rounded-lg ${
+          isDarkMode ? 'bg-gray-800' : 'bg-gray-50'
+        } px-4 py-2 shadow-sm`}>
+          <p className={`text-md font-medium ${
+            isDarkMode ? 'text-gray-300' : 'text-gray-700'
+          }`}>
+            Total publicaciones: <span className="font-bold text-orange-500">{totalItems}</span>
+          </p>
+        </div>
 
-      {/* Filtros - Sección completa rediseñada */}
-      <div className="mb-6 flex flex-wrap items-start gap-4">
-        {/* Filtro por tipo de publicación */}
-        <div className="w-64">
-          <select
-            value={mediaType}
-            onChange={handleMediaTypeChange}
-            className={`w-full rounded-md p-2 ${
-              isDarkMode
-                ? 'border-gray-700 bg-gray-800 text-white'
-                : 'border-gray-300 bg-white text-gray-900'
-            } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
+        {/* Filtros - Sección completa rediseñada */}
+        <div className="filters-section mb-6 flex flex-wrap items-start gap-4">
+          {/* Filtro por tipo de publicación */}
+          <div className="w-64">
+            <select
+              value={mediaType}
+              onChange={handleMediaTypeChange}
+              className={`w-full rounded-md p-2 ${
+                isDarkMode
+                  ? 'border-gray-700 bg-gray-800 text-white'
+                  : 'border-gray-300 bg-white text-gray-900'
+              } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
+            >
+              <option value="" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Todos los tipos de publicación</option>
+              <option value="IMAGE" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Imagen</option>
+              <option value="VIDEO" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Video</option>
+              <option value="CAROUSEL_ALBUM" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Carrusel</option>
+            </select>
+          </div>
+
+          {/* Filtro por usuario */}
+          <div className="w-64">
+            <CustomMultiSelect
+              selectedUsers={selectedUsers}
+              handleUserChange={handleUserChange}
+              businessAccounts={businessAccounts}
+              isDarkMode={isDarkMode}
+            />
+          </div>
+
+          {/* Fecha inicial */}
+          {/* <div className="w-64">
+            <div className="relative">
+              <input
+                type="date"
+                name="startDate"
+                value={dateRange.startDate}
+                onChange={handleDateChange}
+                placeholder="dd/mm/aaaa"
+                className={`w-full rounded-md p-2 ${
+                  isDarkMode
+                    ? 'border-gray-700 bg-gray-800 text-white placeholder-gray-500'
+                    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
+                } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
+              />
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg className={`h-4 w-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+          </div> */}
+
+          {/* Fecha final */}
+          {/* <div className="w-64">
+            <div className="relative">
+              <input
+                type="date"
+                name="endDate"
+                value={dateRange.endDate}
+                onChange={handleDateChange}
+                placeholder="dd/mm/aaaa"
+                className={`w-full rounded-md p-2 ${
+                  isDarkMode
+                    ? 'border-gray-700 bg-gray-800 text-white placeholder-gray-500'
+                    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
+                } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
+              />
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg className={`h-4 w-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+          </div> */}
+          
+          {/* Botones para aplicar/limpiar filtro */}
+          {/* <div className="flex items-center space-x-2">
+            {showApplyButton && (
+              <button
+                onClick={applyDateFilter}
+                className={`rounded-md px-4 py-2 text-sm ${
+                  isDarkMode
+                    ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                    : 'bg-orange-500 hover:bg-orange-600 text-white'
+                } transition-colors`}
+              >
+                Aplicar filtro
+              </button>
+            )}
+            {(confirmedDateRange.startDate || confirmedDateRange.endDate) && (
+              <button
+                onClick={clearDateFilter}
+                className={`rounded-md px-4 py-2 text-sm ${
+                  isDarkMode
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                } transition-colors`}
+              >
+                Limpiar
+              </button>
+            )}
+          </div> */}
+        </div>
+
+        {/* Mensaje de filtro activo */}
+        {/* {confirmedDateRange.startDate && confirmedDateRange.endDate && (
+          <div className={`mb-4 text-sm ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+            Filtro de fechas activo: {new Date(confirmedDateRange.startDate).toLocaleDateString()} - {new Date(confirmedDateRange.endDate).toLocaleDateString()}
+          </div>
+        )} */}
+
+        <div className="posts-table overflow-x-auto">
+          <table
+            className={`min-w-full ${
+              isDarkMode ? 'bg-gray-900 text-gray-200' : 'bg-white text-gray-900'
+            } rounded-lg shadow-md`}
           >
-            <option value="" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Todos los tipos de publicación</option>
-            <option value="IMAGE" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Imagen</option>
-            <option value="VIDEO" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Video</option>
-            <option value="CAROUSEL_ALBUM" className={isDarkMode ? 'bg-gray-800 text-gray-200' : ''}>Carrusel</option>
-          </select>
-        </div>
-
-        {/* Filtro por usuario */}
-        <div className="w-64">
-          <CustomMultiSelect
-            selectedUsers={selectedUsers}
-            handleUserChange={handleUserChange}
-            businessAccounts={businessAccounts}
-            isDarkMode={isDarkMode}
-          />
-        </div>
-
-        {/* Fecha inicial */}
-        {/* <div className="w-64">
-          <div className="relative">
-            <input
-              type="date"
-              name="startDate"
-              value={dateRange.startDate}
-              onChange={handleDateChange}
-              placeholder="dd/mm/aaaa"
-              className={`w-full rounded-md p-2 ${
-                isDarkMode
-                  ? 'border-gray-700 bg-gray-800 text-white placeholder-gray-500'
-                  : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
-              } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
-            />
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <svg className={`h-4 w-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          </div>
-        </div> */}
-
-        {/* Fecha final */}
-        {/* <div className="w-64">
-          <div className="relative">
-            <input
-              type="date"
-              name="endDate"
-              value={dateRange.endDate}
-              onChange={handleDateChange}
-              placeholder="dd/mm/aaaa"
-              className={`w-full rounded-md p-2 ${
-                isDarkMode
-                  ? 'border-gray-700 bg-gray-800 text-white placeholder-gray-500'
-                  : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
-              } border focus:outline-none focus:ring-2 ${isDarkMode ? 'focus:ring-gray-600' : 'focus:ring-orange-200'}`}
-            />
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <svg className={`h-4 w-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          </div>
-        </div> */}
-        
-        {/* Botones para aplicar/limpiar filtro */}
-        {/* <div className="flex items-center space-x-2">
-          {showApplyButton && (
-            <button
-              onClick={applyDateFilter}
-              className={`rounded-md px-4 py-2 text-sm ${
-                isDarkMode
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                  : 'bg-orange-500 hover:bg-orange-600 text-white'
-              } transition-colors`}
-            >
-              Aplicar filtro
-            </button>
-          )}
-          {(confirmedDateRange.startDate || confirmedDateRange.endDate) && (
-            <button
-              onClick={clearDateFilter}
-              className={`rounded-md px-4 py-2 text-sm ${
-                isDarkMode
-                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-              } transition-colors`}
-            >
-              Limpiar
-            </button>
-          )}
-        </div> */}
-      </div>
-
-      {/* Mensaje de filtro activo */}
-      {/* {confirmedDateRange.startDate && confirmedDateRange.endDate && (
-        <div className={`mb-4 text-sm ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>
-          Filtro de fechas activo: {new Date(confirmedDateRange.startDate).toLocaleDateString()} - {new Date(confirmedDateRange.endDate).toLocaleDateString()}
-        </div>
-      )} */}
-
-      <div className="overflow-x-auto">
-        <table
-          className={`min-w-full ${
-            isDarkMode ? 'bg-gray-900 text-gray-200' : 'bg-white text-gray-900'
-          } rounded-lg shadow-md`}
-        >
-          <thead className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium tracking-wider">
-                <div
-                  className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}`}
-                >
-                  Vista Previa
-                </div>
-              </th>
-              {[
-                'contentFormat',
-                'creatorAccount',
-                'likes',
-                'comments',
-                'totalInteractions',
-                'postEngagement',
-                'outliers',
-                'publicationDate',
-              ].map((column) => (
-                <th
-                  key={column}
-                  className="px-4 py-3 text-left text-xs font-medium tracking-wider"
-                >
+            <thead className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium tracking-wider">
                   <div
-                    className={`rounded-md p-2 ${
-                      isDarkMode
-                        ? 'bg-gray-800 text-gray-300'
-                        : 'bg-white text-gray-700'
-                    } group relative flex items-center justify-between`}
+                    className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}`}
                   >
-                    <div className="flex items-center">
-                      <span>
-                        {columnNames[column as keyof typeof columnNames]}
-                      </span>
-                      <div className="group relative ml-2">
-                        <Info className="h-4 w-4 cursor-help text-gray-500 hover:text-gray-300 dark:text-gray-400 dark:hover:text-gray-300" />
-                        <div className="invisible absolute left-0 top-full z-10 mt-2 w-72 -translate-x-1/2 transform rounded-md bg-white text-left text-xs opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:bg-gray-800">
-                          <div className="rounded-md border border-gray-200 bg-white p-3 text-gray-700 shadow-xl dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                            <div className="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-4 border-b-8 border-x-transparent border-b-white dark:border-b-gray-800"></div>
-                            {getFormattedTooltip(column)}
+                    Vista Previa
+                  </div>
+                </th>
+                {[
+                  'contentFormat',
+                  'creatorAccount',
+                  'likes',
+                  'comments',
+                  'totalInteractions',
+                  'postEngagement',
+                  'outliers',
+                  'publicationDate',
+                ].map((column) => (
+                  <th
+                    key={column}
+                    className="px-4 py-3 text-left text-xs font-medium tracking-wider"
+                  >
+                    <div
+                      className={`rounded-md p-2 ${
+                        isDarkMode
+                          ? 'bg-gray-800 text-gray-300'
+                          : 'bg-white text-gray-700'
+                      } group relative flex items-center justify-between`}
+                    >
+                      <div className="flex items-center">
+                        <span>
+                          {columnNames[column as keyof typeof columnNames]}
+                        </span>
+                        <div className="group relative ml-2">
+                          <Info className="h-4 w-4 cursor-help text-gray-500 hover:text-gray-300 dark:text-gray-400 dark:hover:text-gray-300" />
+                          <div className="invisible absolute left-0 top-full z-10 mt-2 w-72 -translate-x-1/2 transform rounded-md bg-white text-left text-xs opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:bg-gray-800">
+                            <div className="rounded-md border border-gray-200 bg-white p-3 text-gray-700 shadow-xl dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                              <div className="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-4 border-b-8 border-x-transparent border-b-white dark:border-b-gray-800"></div>
+                              {getFormattedTooltip(column)}
+                            </div>
                           </div>
                         </div>
                       </div>
+                      <button
+                        onClick={() => requestSort(column)}
+                        className={`ml-2 p-1 rounded-full hover:bg-opacity-20 ${
+                          isDarkMode 
+                            ? 'bg-gray-800/40 border border-gray-700 hover:bg-gray-700/80 text-gray-300 hover:text-gray-100' 
+                            : 'hover:bg-orange-500 text-gray-700'
+                        } transition-colors`}
+                      >
+                        {getSortIcon(column)}
+                      </button>
                     </div>
-                    <button
-                      onClick={() => requestSort(column)}
-                      className={`ml-2 p-1 rounded-full hover:bg-opacity-20 ${
-                        isDarkMode 
-                          ? 'bg-gray-800/40 border border-gray-700 hover:bg-gray-700/80 text-gray-300 hover:text-gray-100' 
-                          : 'hover:bg-orange-500 text-gray-700'
-                      } transition-colors`}
-                    >
-                      {getSortIcon(column)}
-                    </button>
+                  </th>
+                ))}
+                <th className="px-4 py-3 text-left text-xs font-medium tracking-wider">
+                  <div
+                    className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}`}
+                  >
+                    Acciones
                   </div>
                 </th>
-              ))}
-              <th className="px-4 py-3 text-left text-xs font-medium tracking-wider">
-                <div
-                  className={`rounded-md p-2 ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}`}
-                >
-                  Acciones
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody
-            className={`${
-              isDarkMode
-                ? 'divide-y divide-gray-700 bg-gray-900'
-                : 'divide-y divide-gray-200'
-            }`}
-          >
-            {posts && posts.length > 0 ? (
-              posts.map((post) => (
-                <tr
-                  key={post.id}
-                  className={`${
-                    isDarkMode ? 'hover:bg-gray-800 border-gray-700'  : 'hover:bg-gray-50'
-                  } border-b`}
-                >
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {post.contentFormat === 'IMAGE' && (
-                      <div className="relative h-16 w-16">
-                        <img
-                          src={post.mediaURL || 'https://via.placeholder.com/150'}
-                          alt="Content preview"
-                          className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
-                          onError={(e) => {
-                            const element = e.target as HTMLElement
-                            element.style.display = 'none'
-                            const container = element.parentElement
-                            if (container) {
-                              /* Código del botón de refresco temporalmente deshabilitado
-                              const refreshButton = document.createElement('div')
-                              refreshButton.innerHTML = ReactDOMServer.renderToString(
-                                <RefreshButton postId={post.id} isRefreshing={refreshingPosts[post.id]} />
-                              )
-                              container.appendChild(refreshButton)
-                              */
-                              // Mostrar un placeholder simple en lugar del botón de refresco
-                              container.innerHTML = `
-                                <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-                                  <span class="text-gray-500">Sin imagen</span>
-                                </div>
-                              `
-                            }
-                          }}
-                        />
-                      </div>
-                    )}
-                    {post.contentFormat === 'VIDEO' && (
-                      <div className="relative h-16 w-16">
-                        <video
-                          src={post.mediaURL}
-                          className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
-                          preload="metadata"
-                          muted
-                          onLoadedMetadata={(e) => {
-                            (e.target as HTMLVideoElement).currentTime = 0
-                          }}
-                          onError={(e) => {
-                            const element = e.target as HTMLElement
-                            element.style.display = 'none'
-                            const container = element.parentElement
-                            if (container) {
-                              /* Código del botón de refresco temporalmente deshabilitado
-                              const refreshButton = document.createElement('div')
-                              refreshButton.innerHTML = ReactDOMServer.renderToString(
-                                <RefreshButton postId={post.id} isRefreshing={refreshingPosts[post.id]} />
-                              )
-                              container.appendChild(refreshButton)
-                              */
-                              // Mostrar un placeholder simple en lugar del botón de refresco
-                              container.innerHTML = `
-                                <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-                                  <span class="text-gray-500">Sin video</span>
-                                </div>
-                              `
-                            }
-                          }}
-                        />
-                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                          <Video className="h-6 w-6 text-white" />
-                        </div>
-                      </div>
-                    )}
-                    {post.contentFormat === 'CAROUSEL_ALBUM' && (
-                      <div className="relative h-16 w-16">
-                        <img
-                          src={post.mediaURL || 'https://via.placeholder.com/150'}
-                          alt="First image of carrousel"
-                          className="h-16 w-16 rounded object-cover transition-transform duration-300 hover:scale-105"
-                          onError={(e) => {
-                            const element = e.target as HTMLElement
-                            element.style.display = 'none'
-                            const container = element.parentElement
-                            if (container) {
-                              /* Código del botón de refresco temporalmente deshabilitado
-                              const refreshButton = document.createElement('div')
-                              refreshButton.innerHTML = ReactDOMServer.renderToString(
-                                <RefreshButton postId={post.id} isRefreshing={refreshingPosts[post.id]} />
-                              )
-                              container.appendChild(refreshButton)
-                              */
-                              // Mostrar un placeholder simple en lugar del botón de refresco
-                              container.innerHTML = `
-                                <div class="w-16 h-16 bg-gray-300 rounded flex items-center justify-center">
-                                  <span class="text-gray-500">Sin imagen</span>
-                                </div>
-                              `
-                            }
-                          }}
-                        />
-                      </div>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {post.contentFormat}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {post.creatorAccount}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {(post.likes ? post.likes.toLocaleString() : 0)}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {(post.comments ? post.comments.toLocaleString() : 0)}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {(post.totalInteractions ? post.totalInteractions.toLocaleString() : 0)}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {post.postEngagement
-                      ? `${(post.postEngagement * 100).toFixed(2)}%`
-                      : 'N/A'}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {post.outliers
-                      ? `${parseFloat(post.outliers).toFixed(2)}X`
-                      : ''}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {post.publicationDate ? new Date(post.publicationDate).toLocaleDateString() : ''}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button
+              </tr>
+            </thead>
+            <tbody
+              className={`${
+                isDarkMode
+                  ? 'divide-y divide-gray-700 bg-gray-900'
+                  : 'divide-y divide-gray-200'
+              }`}
+            >
+              {posts && posts.length > 0 ? (
+                posts.map((post) => (
+                  <tr
+                    key={post.id}
+                    className={`${
+                      isDarkMode ? 'hover:bg-gray-800 border-gray-700'  : 'hover:bg-gray-50'
+                    } border-b`}
+                  >
+                    <td className="whitespace-nowrap px-4 py-4">
+                      <CachedThumbnail
+                        postId={post.id}
+                        originalUrl={post.mediaURL}
+                        contentFormat={post.contentFormat}
+                        carouselItemsLength={post.carousel_items?.length}
                         onClick={() => openPostModal(post)}
-                        className={`rounded-md p-2 ${
-                          isDarkMode
-                            ? 'bg-gray-600 hover:bg-gray-700'
-                            : 'bg-gray-500 hover:bg-gray-600'
-                        } text-white`}
-                      >
-                        <Eye size={16} />
-                      </button>
-                      {post.status !== 'APPROVED' && (
+                      />
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4">
+                      {post.contentFormat}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4">
+                      {post.creatorAccount}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4">
+                      {(post.likes ? post.likes.toLocaleString() : 0)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4">
+                      {(post.comments ? post.comments.toLocaleString() : 0)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4">
+                      {(post.totalInteractions ? post.totalInteractions.toLocaleString() : 0)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4">
+                      {post.postEngagement
+                        ? `${(post.postEngagement * 100).toFixed(2)}%`
+                        : 'N/A'}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4">
+                      {post.outliers
+                        ? `${parseFloat(post.outliers).toFixed(2)}X`
+                        : ''}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4">
+                      {post.publicationDate ? new Date(post.publicationDate).toLocaleDateString() : ''}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4">
+                      <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => handleApproval(post.id, 'approved', new Date(post.publicationDate))}
+                          onClick={() => openPostModal(post)}
                           className={`rounded-md p-2 ${
                             isDarkMode
-                              ? 'bg-green-600 hover:bg-green-700'
-                              : 'bg-green-500 hover:bg-green-600'
-                          } text-white`}
-                          /* Comentado temporalmente la deshabilitación del botón para videos sin transcripción
-                          disabled={post.contentFormat === 'VIDEO' && !post.videoTranscript}
-                          */
-                        >
-                          <Check size={16} />
-                        </button>
-                      )}
-                      {post.status !== 'REJECTED' && (
-                        <button
-                          onClick={() => handleApproval(post.id, 'rejected', new Date(post.publicationDate))}
-                          className={`rounded-md p-2 ${
-                            isDarkMode
-                              ? 'bg-red-600 hover:bg-red-700'
-                              : 'bg-red-500 hover:bg-red-600'
+                              ? 'bg-gray-600 hover:bg-gray-700'
+                              : 'bg-gray-500 hover:bg-gray-600'
                           } text-white`}
                         >
-                          <X size={16} />
+                          <Eye size={16} />
                         </button>
-                      )}
-                    </div>
+                        {post.status !== 'APPROVED' && (
+                          <button
+                            onClick={() => handleApproval(post.id, 'approved', new Date(post.publicationDate))}
+                            className={`rounded-md p-2 ${
+                              isDarkMode
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-green-500 hover:bg-green-600'
+                            } text-white`}
+                            /* Comentado temporalmente la deshabilitación del botón para videos sin transcripción
+                            disabled={post.contentFormat === 'VIDEO' && !post.videoTranscript}
+                            */
+                          >
+                            <Check size={16} />
+                          </button>
+                        )}
+                        {post.status !== 'REJECTED' && (
+                          <button
+                            onClick={() => handleApproval(post.id, 'rejected', new Date(post.publicationDate))}
+                            className={`rounded-md p-2 ${
+                              isDarkMode
+                                ? 'bg-red-600 hover:bg-red-700'
+                                : 'bg-red-500 hover:bg-red-600'
+                            } text-white`}
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={9} className={`px-4 py-4 text-center ${
+                      isDarkMode 
+                        ? 'text-gray-400 bg-gray-900' 
+                        : 'text-gray-500 bg-white'
+                    }`}>
+                    No hay publicaciones que coincidan con los filtros
+                    seleccionados.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={9} className={`px-4 py-4 text-center ${
-                    isDarkMode 
-                      ? 'text-gray-400 bg-gray-900' 
-                      : 'text-gray-500 bg-white'
-                  }`}>
-                  No hay publicaciones que coincidan con los filtros
-                  seleccionados.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Reemplazar 'Load More' por paginación */}
-      <div className="mt-6 flex items-center justify-center">
-        <div
-          className={`flex items-center gap-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
-        >
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={!prevPageToken || currentPage <= 1 || loadingPrevPage}
-            className={`rounded-md px-4 py-2 ${
-              isDarkMode
-                ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
-                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400'
-            } border flex items-center justify-center min-w-[100px]`}
-          >
-            {loadingPrevPage ? (
-              <div className="flex items-center">
-                <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Cargando</span>
-              </div>
-            ) : (
-              'Anterior'
-            )}
-          </button>
-
-          <span>
-            Página {currentPage} de {totalPages > 0 ? totalPages : '?'}
-          </span>
-
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={!nextPageToken || currentPage >= totalPages || loadingNextPage}
-            className={`rounded-md px-4 py-2 ${
-              isDarkMode
-                ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
-                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400'
-            } border flex items-center justify-center min-w-[100px]`}
-          >
-            {loadingNextPage ? (
-              <div className="flex items-center">
-                <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Cargando</span>
-              </div>
-            ) : (
-              'Siguiente'
-            )}
-          </button>
+              )}
+            </tbody>
+          </table>
         </div>
-      </div>
-      {selectedPost && (
-        <PostModal
-          post={selectedPost}
-          businessId={businessId}
-          closeModal={closePostModal}
-          isOpen={true}
-        />
-      )}
 
-      <ToastContainer />
-    </div>
+        {/* Reemplazar 'Load More' por paginación */}
+        <div className="mt-6 flex items-center justify-center">
+          <div
+            className={`flex items-center gap-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
+          >
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!prevPageToken || currentPage <= 1 || loadingPrevPage}
+              className={`rounded-md px-4 py-2 ${
+                isDarkMode
+                  ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
+                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400'
+              } border flex items-center justify-center min-w-[100px]`}
+            >
+              {loadingPrevPage ? (
+                <div className="flex items-center">
+                  <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Cargando</span>
+                </div>
+              ) : (
+                'Anterior'
+              )}
+            </button>
+
+            <span>
+              Página {currentPage} de {totalPages > 0 ? totalPages : '?'}
+            </span>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!nextPageToken || currentPage >= totalPages || loadingNextPage}
+              className={`rounded-md px-4 py-2 ${
+                isDarkMode
+                  ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:bg-gray-900 disabled:text-gray-600'
+                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400'
+              } border flex items-center justify-center min-w-[100px]`}
+            >
+              {loadingNextPage ? (
+                <div className="flex items-center">
+                  <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Cargando</span>
+                </div>
+              ) : (
+                'Siguiente'
+              )}
+            </button>
+          </div>
+        </div>
+        {selectedPost && (
+          <PostModal
+            post={selectedPost}
+            businessId={businessId}
+            closeModal={closePostModal}
+            isOpen={true}
+          />
+        )}
+
+        <ToastContainer />
+      </div>
+    </>
   )
 }
 
